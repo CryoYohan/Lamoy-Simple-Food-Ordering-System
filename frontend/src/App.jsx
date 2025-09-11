@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './output.css'
+import './tailwind.css'
 
 function App() {
   return (
