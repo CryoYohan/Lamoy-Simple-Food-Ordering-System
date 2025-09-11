@@ -6,10 +6,12 @@ const Navigation = () => {
 
   const handleLogoClick = () => {
     navigate('/');
+    // Landingpage padung
   };
 
   const handleHomeClick = () => {
     navigate('/');
+    // Homepage padung
   };
 
   const handleMenuClick = () => {
