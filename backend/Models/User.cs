@@ -18,7 +18,7 @@ namespace backend.Models
         public string PasswordHash { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
-        public int Address { get; set; }
+        public string Address { get; set; }
         [Required]
         public UserRole Role { get; set; }
         public DateTime CreatedAt { get; set; }
