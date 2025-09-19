@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import DynamicNavigation from '../components/dynamicNavbar';
 import bgImage from '../assets/MAIN4.png';
 import bowlImage from '../assets/BOWL.png';
@@ -11,8 +12,9 @@ import lechonImage from '../assets/LETCHON.jpg';
 import pancitImage from '../assets/PANCIT.jpg';
 import adoboImage from '../assets/ADOBO.jpg';
 
-const Landing = () => {
+const Home = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState({
     hero: false,
@@ -23,6 +25,13 @@ const Landing = () => {
     whatsCooking: false,
     readyToStart: false
   });
+
+  // Redirect to landing if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   // Intersection Observer for scroll animations
   useEffect(() => {
@@ -76,6 +85,11 @@ const Landing = () => {
   const getCurrentFood = () => foods[currentSlide];
   const getNextFood = () => foods[(currentSlide + 1) % foods.length];
 
+  // Don't render if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="font-sans">
       {/* First Section with MAIN4.png background */}
@@ -108,13 +122,13 @@ const Landing = () => {
             {/* Hero Text */}
             <div className="text-center mb-6 sm:mb-8 max-w-4xl">
               <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
-                Welcome to Lamoy!
+                Welcome back, {user?.userName || user?.UserName}!
               </h1>
               <p className="text-white/90 text-base sm:text-lg md:text-xl leading-relaxed px-4 max-w-3xl mx-auto">
-                Craving something delicious? Lamoy makes it easy to order your favorite
+                Ready for another delicious meal? Browse our menu and discover
                 <span className="hidden sm:inline"><br /></span>
                 <span className="sm:hidden"> </span>
-                Filipino meals—quick, simple, and hassle-free, anytime, anywhere.
+                your next favorite Filipino dish—quick, simple, and hassle-free.
               </p>
             </div>
           </div>
@@ -172,7 +186,7 @@ const Landing = () => {
                   className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 object-contain opacity-80 transition-all duration-700 ease-in-out"
                 />
               </div>
-
+              
               {/* Right side dish - Next food */}
               <div className="absolute right-[-50px] sm:right-[-60px] md:right-[-70px] lg:right-[-90px] top-1/2 transform -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white rounded-full shadow-lg flex items-center justify-center z-5 transition-all duration-700 ease-in-out">
                 <img 
@@ -201,7 +215,7 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Why Choose Lamoy Section */}
+      {/* Quick Actions Section for Authenticated Users */}
       <div className="bg-white py-16 sm:py-24 md:py-32 lg:py-35 px-4 sm:px-6 lg:px-8">
         <div 
           className={`max-w-6xl mx-auto transition-all duration-1000 ${
@@ -212,70 +226,76 @@ const Landing = () => {
           {/* Section Title */}
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4 sm:mb-6 px-4">
-              Why Choose <span className="text-yellow-500">Lamoy</span>
+              What would you like to do?
             </h2>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {/* Filipino Flavors */}
+          {/* Quick Actions Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {/* Browse Menu */}
             <div className={`text-center group transition-all duration-1000 px-4 ${
               isVisible.whyChoose ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`} style={{ transitionDelay: '0ms' }}>
-              <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 bg-white-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors border border-gray-200 duration-300">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+              <div 
+                className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 bg-yellow-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors border border-gray-200 duration-300 cursor-pointer"
+                onClick={() => navigate('/menu')}
+              >
+                <svg className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.20-1.10-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12.88 11.53z"/>
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">Filipino Flavors</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">Browse Menu</h3>
               <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                Enjoy the rich taste of local dishes you know and love.
+                Explore our delicious Filipino dishes and find your next favorite meal.
               </p>
+              <button 
+                onClick={() => navigate('/menu')}
+                className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors duration-300"
+              >
+                View Menu
+              </button>
             </div>
 
-            {/* Fast and Easy */}
+            {/* View Orders */}
             <div className={`text-center group transition-all duration-1000 px-4 ${
               isVisible.whyChoose ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`} style={{ transitionDelay: '200ms' }}>
-              <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 bg-white-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors border border-gray-200 duration-300">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M15.5 5.5L11 1 9.5 2.5 13 6 2 17h3l1.5-1.5L9 13l1.5-1.5L14 15l1.5-1.5L12 10l1.5-1.5L17 12l1.5-1.5L15.5 7V5.5z"/>
+              <div 
+                className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 bg-yellow-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors border border-gray-200 duration-300 cursor-pointer"
+                onClick={() => navigate('/orders')}
+              >
+                <svg className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">Fast and Easy</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">My Orders</h3>
               <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                Get your food in just a few taps, anytime, anywhere.
+                Track your current orders and view your order history.
               </p>
+              <button 
+                onClick={() => navigate('/orders')}
+                className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors duration-300"
+              >
+                View Orders
+              </button>
             </div>
 
-            {/* For Every Craving */}
-            <div className={`text-center group transition-all duration-1000 px-4 ${
+            {/* Reorder Favorites */}
+            <div className={`text-center group transition-all duration-1000 px-4 sm:col-span-2 lg:col-span-1 ${
               isVisible.whyChoose ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`} style={{ transitionDelay: '400ms' }}>
-              <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 bg-white-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors border border-gray-200 duration-300">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 bg-yellow-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors border border-gray-200 duration-300 cursor-pointer">
+                <svg className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">For Every Craving</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">Favorites</h3>
               <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                From classic comfort meals to quick bites, we've got you covered.
+                Quickly reorder your favorite dishes with just one click.
               </p>
-            </div>
-
-            {/* Convenient & Reliable */}
-            <div className={`text-center group transition-all duration-1000 px-4 ${
-              isVisible.whyChoose ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`} style={{ transitionDelay: '600ms' }}>
-              <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 bg-white-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-200 transition-colors border border-gray-200 duration-300">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11z"/>
-                </svg>
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3">Convenient & Reliable</h3>
-              <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                No more long lines or waiting — Lamoy makes eating easier.
-              </p>
+              <button className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors duration-300">
+                View Favorites
+              </button>
             </div>
           </div>
         </div>
@@ -335,7 +355,10 @@ const Landing = () => {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 text-center sm:text-left">
               Our Top <span className="text-yellow-500">Products</span>
             </h2>
-            <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-semibold transition-colors duration-300 text-sm sm:text-base whitespace-nowrap">
+            <button 
+              onClick={() => navigate('/menu')}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-semibold transition-colors duration-300 text-sm sm:text-base whitespace-nowrap"
+            >
               View Menu
             </button>
           </div>
@@ -532,7 +555,7 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Ready to get Started Section */}
+      {/* Continue Your Journey Section */}
       <div className="bg-white py-20 sm:py-32 md:py-40 lg:py-50 px-4 sm:px-6 lg:px-8">
         <div 
           className={`max-w-4xl mx-auto text-center transition-all duration-1000 ${
@@ -541,19 +564,28 @@ const Landing = () => {
           data-section="readyToStart"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4 sm:mb-6 px-4">
-            Ready to get <span className="text-yellow-500">Started?</span>
+            Continue Your <span className="text-yellow-500">Journey</span>
           </h2>
           <p className="text-gray-600 text-base sm:text-lg leading-relaxed mb-8 sm:mb-12 max-w-2xl mx-auto px-4">
-            Join Lamoy today and enjoy quick, easy access to your favorite
+            Explore our full menu, track your orders, or discover new flavors.
             <span className="hidden sm:inline"><br /></span>
             <span className="sm:hidden"> </span>
-            Filipino meals—anytime, anywhere.
+            Your next delicious meal is just a click away!
           </p>
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl"
-            onClick={() => navigate('/signup')}
-          >
-            Sign Up
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button 
+              onClick={() => navigate('/menu')}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl"
+            >
+              Browse Menu
+            </button>
+            <button 
+              onClick={() => navigate('/orders')}
+              className="bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-300 hover:border-gray-400 px-8 sm:px-10 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              My Orders
+            </button>
+          </div>
         </div>
       </div>
 
@@ -567,7 +599,7 @@ const Landing = () => {
                 <img 
                   src={logoImage} 
                   alt="Lamoy Logo"
-                  className="w-12 h-12 sm:w-16 sm:h-16 mr-2 sm:mr-3"
+                  className="w-20 h-20 sm:w-40 sm:h-40 mr-2 sm:mr-3"
                 />
               </div>
             </div>
@@ -576,8 +608,8 @@ const Landing = () => {
             <div className="text-center sm:text-left">
               <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Quick Links</h3>
               <ul className="space-y-1 sm:space-y-2">
-                <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Home</a></li>
-                <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Menu</a></li>
+                <li><button onClick={() => navigate('/home')} className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Home</button></li>
+                <li><button onClick={() => navigate('/menu')} className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Menu</button></li>
                 <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">About</a></li>
                 <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Contact</a></li>
               </ul>
@@ -614,4 +646,4 @@ const Landing = () => {
   );
 };
 
-export default Landing;
+export default Home;

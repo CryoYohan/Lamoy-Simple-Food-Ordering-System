@@ -1,17 +1,76 @@
-import React, { useState } from 'react';
-import Navigation from '../components/navbar';
+import React, { useState, useEffect } from 'react';
+import DynamicNavigation from '../components/dynamicNavbar';
 import bgImage from '../assets/MAIN4.png';
 import { useNavigate } from 'react-router-dom';
-
-
+import { useAuth } from '../context/AuthContext';
 
 const WelcomeLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState({
+    hero: false,
+    form: false
+  });
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(prev => ({
+              ...prev,
+              [entry.target.dataset.section]: true
+            }));
+          }
+        });
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+
+    // Observe all sections with data-section attribute
+    const sections = document.querySelectorAll('[data-section]');
+    sections.forEach(section => observer.observe(section));
+
+    // Cleanup observer on component unmount
+    return () => observer.disconnect();
+  }, []);
+
+  // Set hero section visible immediately on mount
+  useEffect(() => {
+    setIsVisible(prev => ({ ...prev, hero: true }));
+  }, []);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
+    // Client-side validation
+    if (!email.trim()) {
+      alert('Email Required: Please enter your email address to sign in.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!password.trim()) {
+      alert('Password Required: Please enter your password to sign in.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Invalid Email Format: Please enter a valid email address (example: user@example.com).');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch('http://localhost:5143/api/login', {
@@ -20,24 +79,44 @@ const WelcomeLogin = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          Email: email, // Use email as username
+          Email: email,
           Password: password,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        alert(data.message || 'Login successful!'); // Use the data properly
-        // Optionally save user info to localStorage or context here
-        // localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/'); // Redirect to home or dashboard
+        
+        // Show success alert
+        alert('Welcome Back! Successfully signed in! Welcome back to Lamoy.');
+
+        // Auto-navigate after success message
+        setTimeout(() => {
+          login({
+            email: email,
+            userName: data.userName || data.UserName || email.split('@')[0],
+          });
+          navigate('/home');
+        }, 1000);
       } else {
-        const error = await response.text();
-        alert(error);
+        const status = response.status;
+        let message = 'We encountered an issue while signing you in. Please try again.';
+
+        if (status === 401 || status === 400) {
+          message = 'Invalid Credentials: The email or password you entered is incorrect. Please double-check your credentials and try again.';
+        } else if (status === 404) {
+          message = 'Account Not Found: No account found with this email address. Please check your email or create a new account.';
+        } else if (status >= 500) {
+          message = 'Server Error: Our servers are experiencing issues. Please try again in a few minutes.';
+        }
+
+        alert(message);
       }
     } catch (err) {
-      alert('Login failed. Please try again.');
-      console.error(err);
+      alert('Connection Error: We\'re having trouble connecting to our servers. Please check your internet connection and try again.');
+      console.error('Login error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,11 +143,17 @@ const WelcomeLogin = () => {
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-white" />
       
       <div className="absolute w-full z-50">
-        <Navigation />
+        <DynamicNavigation />
       </div>
+      
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="text-center mb-8 sm:mb-12 mt-16 sm:mt-20">
-          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">Welcome!</h1>
+        <div 
+          className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${
+            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}
+          data-section="hero"
+        >
+          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">Welcome Back!</h1>
           <p className="text-white/90 text-base sm:text-lg px-4 max-w-md sm:max-w-none mx-auto">
             Access your account and enjoy your favorite
             <span className="hidden sm:inline"><br /></span>
@@ -77,7 +162,13 @@ const WelcomeLogin = () => {
           </p>
         </div>
         
-        <div className="w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4">
+        <div 
+          className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${
+            isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}
+          data-section="form"
+          style={{ transitionDelay: '300ms' }}
+        >
           <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border border-gray-100">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-700 mb-8 sm:mb-10 text-center">
               Sign In to <span className="text-yellow-500">Lamoy</span>
@@ -95,6 +186,7 @@ const WelcomeLogin = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
                   required
+                  disabled={isLoading}
                 />
               </div>
               
@@ -109,6 +201,7 @@ const WelcomeLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
                   required
+                  disabled={isLoading}
                 />
               </div>
               
@@ -117,6 +210,7 @@ const WelcomeLogin = () => {
                   type="button"
                   onClick={handleForgotPassword}
                   className="text-xs sm:text-sm text-yellow-500 hover:text-yellow-600 transition-colors font-medium"
+                  disabled={isLoading}
                 >
                   Forgot Password?
                 </button>
@@ -124,9 +218,20 @@ const WelcomeLogin = () => {
               
               <button
                 type="submit"
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 sm:py-4 px-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-200"
+                disabled={isLoading}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-300 disabled:cursor-not-allowed text-white py-3 sm:py-4 px-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-200 flex items-center justify-center"
               >
-                Sign In
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing In...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
               </button>
               
               <div className="text-center text-xs sm:text-sm text-gray-600 pt-2">
@@ -135,6 +240,7 @@ const WelcomeLogin = () => {
                   type="button"
                   onClick={handleCreateAccount}
                   className="text-yellow-500 hover:text-yellow-600 font-semibold hover:underline transition-all"
+                  disabled={isLoading}
                 >
                   Sign Up
                 </button>
