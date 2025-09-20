@@ -46,8 +46,6 @@ dotnet --version
 dotnet restore
 
 4. Configure database connection
-Create a file appsettings.Development.json in the backend/ folder.
-
 Add your local connection string:
 {
   "ConnectionStrings": {
