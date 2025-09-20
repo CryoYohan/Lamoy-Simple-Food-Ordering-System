@@ -20,9 +20,36 @@ namespace backend.Controllers
                 _context = context;
             }
 
+            [HttpGet]
+            public async Task<ActionResult> GetAllItems()
+            {
+               var items = await _context.MenuItems
+                .Where(mi => mi.IsAvailable)
+                .Select(mi => new
+                {
+                    mi.ItemId,
+                    mi.Name,
+                    mi.Description,
+                    mi.Price,
+                    mi.ImageUrl,
+                    mi.CategoryId,
+                    mi.IsAvailable
+                })
+                .ToListAsync();
+                return Ok(items);
+            }
+            
+            [HttpGet("categories")]
+            public async Task<ActionResult> GetAllCategories()
+            {
+                var categories = await _context.MenuCategories.ToListAsync();
+                return Ok(categories);
+            }
+        
+
             // GET: api/menu/category/{categoryId}
             [HttpGet("category/{categoryId}")]
-            public async Task<ActionResult<IEnumerable<MenuItem>>> GetMenuItemsByCategory(int categoryId)
+            public async Task<ActionResult> GetMenuItemsByCategory(int categoryId)
             {
                 var items = await _context.MenuItems
                     .Where(mi => mi.CategoryId == categoryId && mi.IsAvailable)
@@ -32,7 +59,7 @@ namespace backend.Controllers
 
             // GET: api/menu/search?query=xxx
             [HttpGet("search")]
-            public async Task<ActionResult<IEnumerable<MenuItem>>> SearchMenuItems([FromQuery] string query)
+            public async Task<ActionResult> SearchMenuItems([FromQuery] string query)
             {
                 if (string.IsNullOrWhiteSpace(query))
                     return BadRequest("Query parameter is required.");

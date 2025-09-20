@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import DynamicNavigation from '../components/dynamicNavbar';
 import bowlImage from '../assets/BOWL.png';
 import bgImage from '../assets/MAIN4.png';
-
+import axios from 'axios'
 
 const Menu = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All Items');
   const [searchTerm, setSearchTerm] = useState('');
   const [isVisible, setIsVisible] = useState({
@@ -49,104 +51,41 @@ const Menu = () => {
   }, []);
 
   // Categories data
-  const categories = [
-    { id: 'all', name: 'All Items', icon: 'all' },
-    { id: 'main', name: 'Main Course', icon: 'main' },
-    { id: 'dessert', name: 'Dessert', icon: 'dessert' },
-    { id: 'beverages', name: 'Beverages', icon: 'beverages' }
-  ];
-
-  // Sample menu items data
-  const menuItems = [
-    {
-      id: 1,
-      name: 'Pancit Canton',
-      description: 'A classic Filipino stir-fried noodle dish loaded with vegetables, meat, and savory flavors that bring comfort in every bite.',
-      price: 80.00,
-      image: bowlImage,
-      category: 'main',
-      rating: 4.8,
-      isPopular: true
-    },
-    {
-      id: 2,
-      name: 'Chicken Adobo',
-      description: 'The Philippines\' national dish! Tender chicken braised in soy sauce, vinegar, and garlic. Served with steamed rice.',
-      price: 100.00,
-      image: bowlImage,
-      category: 'main',
-      rating: 4.9,
-      isPopular: true
-    },
-    {
-      id: 3,
-      name: 'Kare-Kare',
-      description: 'A rich and creamy peanut-based stew with tender oxtail, beef tripe, and fresh vegetables. Served with bagoong.',
-      price: 150.00,
-      image: bowlImage,
-      category: 'main',
-      rating: 4.7,
-      isPopular: false
-    },
-    {
-      id: 4,
-      name: 'Lechon Kawali',
-      description: 'Perfectly roasted pork belly with crispy skin and succulent meat. A Filipino celebration favorite.',
-      price: 120.00,
-      image: bowlImage,
-      category: 'main',
-      rating: 4.6,
-      isPopular: true
-    },
-    {
-      id: 5,
-      name: 'Bicol Express',
-      description: 'A rich and spicy coconut milk stew with tender pork, chilies, and shrimp paste, inspired by the bold flavors of Bicol.',
-      price: 120.00,
-      image: bowlImage,
-      category: 'main',
-      rating: 4.5,
-      isPopular: false
-    },
-    {
-      id: 6,
-      name: 'Pork Adobo',
-      description: 'Philippines\' signature dish of tender meat simmered in soy sauce, vinegar, garlic, and spices for a savory-sweet taste.',
-      price: 100.00,
-      image: bowlImage,
-      category: 'main',
-      rating: 4.8,
-      isPopular: false
-    },
-    {
-      id: 7,
-      name: 'Halo-Halo',
-      description: 'A refreshing Filipino dessert with mixed fruits, beans, ube ice cream, and topped with leche flan.',
-      price: 75.00,
-      image: bowlImage,
-      category: 'dessert',
-      rating: 4.4,
-      isPopular: true
-    },
-    {
-      id: 8,
-      name: 'Fresh Buko Juice',
-      description: 'Refreshing young coconut water served fresh from the shell. Perfect for hot days.',
-      price: 45.00,
-      image: bowlImage,
-      category: 'beverages',
-      rating: 4.3,
-      isPopular: false
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, itemsRes] = await Promise.all([
+          axios.get('http://localhost:5143/api/menu/categories'),
+          axios.get('http://localhost:5143/api/menu')
+        ]);
+        const allItemsCategory = { categoryId: 0, name: 'All Items' };
+  
+        setCategories([allItemsCategory, ...catRes.data]);
+        setMenuItems(itemsRes.data);
+      } catch (err) {
+        console.error(err);
+      }
     }
-  ];
 
+    fetchData();
+  },[])
+  
+  
   // Filter menu items based on category and search
-  const filteredItems = menuItems.filter(item => {
-    const matchesCategory = selectedCategory === 'All Items' || item.category === categories.find(cat => cat.name === selectedCategory)?.id;
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+ const filteredItems = menuItems.filter(item => {
+  // if "All Items" is chosen, always true
+  const matchesCategory =
+    selectedCategory === 'All Items'
+      ? true
+      : item.categoryId === categories.find(cat => cat.name === selectedCategory)?.id 
+        || item.categoryId === categories.find(cat => cat.name === selectedCategory)?.categoryId;
+
+  const matchesSearch =
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+  return matchesCategory && matchesSearch;
+});
 
   return (
     <div className="font-sans bg-white min-h-screen">
@@ -194,27 +133,27 @@ const Menu = () => {
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
                 {categories.map((category, index) => {
-                  const getIcon = (iconType) => {
-                    switch(iconType) {
-                      case 'all':
+                  const getIcon = (categoryName) => {
+                    switch(categoryName) {
+                      case 'All Items':
                         return (
                           <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                           </svg>
                         );
-                      case 'main':
+                      case 'Main Course':
                         return (
                           <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.20-1.10-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12.88 11.53z"/>
                           </svg>
                         );
-                      case 'dessert':
+                      case 'Dessert':
                         return (
                           <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M18 2C16.89 2 16 2.89 16 4V8C16 8.55 16.45 9 17 9H19C19.55 9 20 8.55 20 8V4C20 2.89 19.11 2 18 2M18 4V7H17V4H18M12 2C10.89 2 10 2.89 10 4V8C10 8.55 10.45 9 11 9H13C13.55 9 14 8.55 14 8V4C14 2.89 13.11 2 12 2M12 4V7H11V4H12M6 2C4.89 2 4 2.89 4 4V8C4 8.55 4.45 9 5 9H7C7.55 9 8 8.55 8 8V4C8 2.89 7.11 2 6 2M6 4V7H5V4H6M2 10V12H22V10H2M2 13V15H6V13H2M8 13V15H12V13H8M14 13V15H18V13H14M20 13V15H22V13H20M2 16V18H6V16H2M8 16V18H12V16H8M14 16V18H18V16H14M20 16V18H22V16H20M2 19V21H6V19H2M8 19V21H12V19H8M14 19V21H18V19H14M20 19V21H22V19H20Z"/>
                           </svg>
                         );
-                      case 'beverages':
+                      case 'Beverages':
                         return (
                           <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M2,21V19H20V21H2M20,8V5H18V8H20M20,3A2,2 0 0,1 22,5V8A2,2 0 0,1 20,10H18V13A4,4 0 0,1 14,17H8A4,4 0 0,1 4,13V3H20M16,5H6V13A2,2 0 0,0 8,15H14A2,2 0 0,0 16,13V5Z"/>
@@ -227,7 +166,7 @@ const Menu = () => {
 
                   return (
                     <button
-                      key={category.id}
+                      key={category.id || `custom-${category.name}`}
                       onClick={() => setSelectedCategory(category.name)}
                       className={`group relative bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:shadow-xl hover:scale-105 border border-white/20 ${
                         selectedCategory === category.name 
@@ -243,7 +182,7 @@ const Menu = () => {
                     >
                       <div className="text-center">
                         <div className="mb-3 sm:mb-4 transition-transform duration-300 group-hover:scale-110 flex justify-center">
-                          {getIcon(category.icon)}
+                          {getIcon(category.name)}
                         </div>
                         <h3 className="text-gray-800 font-bold text-sm sm:text-base md:text-lg">
                           {category.name}
@@ -313,23 +252,12 @@ const Menu = () => {
                   }}
                 >
                   {/* Item Image */}
-                  <div className="relative h-48 sm:h-56 bg-yellow-500 flex items-center justify-center overflow-hidden">
+                  <div className="relative h-48 sm:h-56 bg-yellow-500 flex items-center justify-center overflow-hidden rounded-t-2xl">
                     <img 
-                      src={item.image} 
+                      src={bowlImage}
                       alt={item.name}
                       className="w-32 h-32 sm:w-40 sm:h-40 object-contain transition-transform duration-300 group-hover:scale-110"
                     />
-                    {item.isPopular && (
-                      <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        Popular
-                      </div>
-                    )}
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                      <svg className="w-4 h-4 text-yellow-500 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                      </svg>
-                      <span className="text-gray-700 text-sm font-medium">{item.rating}</span>
-                    </div>
                   </div>
 
                   {/* Item Details */}
