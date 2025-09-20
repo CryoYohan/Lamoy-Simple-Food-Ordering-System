@@ -1,20 +1,20 @@
 using backend.Data;
+using backend.Services; // 👈 add this
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 
-// DotNetEnv for secrets in .env file niggas
+// Load secrets from .env file
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-//Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
-//Application DB Context
+
+// Application DB Context
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -30,6 +30,10 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowCredentials());
 });
+
+
+// ✅ Register EmailService
+builder.Services.AddTransient<EmailService>();
 
 var app = builder.Build();
 
