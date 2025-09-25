@@ -7,7 +7,9 @@ import Landing from './pages/landing';
 import Home from './pages/home';
 import ForgotPassword from './pages/forgotPassword';
 import Menu from './pages/menu'; 
+import CheckOutPage from './pages/checkOut.jsx';
 import ResetPassword from './pages/ResetPassword';
+
 
 const App = () => {
   return (
@@ -20,6 +22,7 @@ const App = () => {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/menu" element={<Menu />} /> 
+          <Route path="/checkout" element={<CheckOutPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
       </Router>
