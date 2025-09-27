@@ -122,7 +122,7 @@ const Home = () => {
             {/* Hero Text */}
             <div className="text-center mb-6 sm:mb-8 max-w-4xl">
               <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
-                Welcome back, {user?.userName || user?.UserName}!
+                Welcome back, {user?.userName || user?.UserName || user?.username || user?.name || 'User'}!
               </h1>
               <p className="text-white/90 text-base sm:text-lg md:text-xl leading-relaxed px-4 max-w-3xl mx-auto">
                 Ready for another delicious meal? Browse our menu and discover

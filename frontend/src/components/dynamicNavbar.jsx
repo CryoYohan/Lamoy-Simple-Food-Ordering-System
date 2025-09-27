@@ -25,6 +25,10 @@ const DynamicNavigation = () => {
     navigate("/orders");
   };
 
+  const handleCartClick = () => {
+    navigate('/cart');
+  };
+
   const handleSignUpClick = () => {
     navigate("/signup");
   };
@@ -107,7 +111,14 @@ const DynamicNavigation = () => {
                 {location.pathname !== "/login" &&
                   location.pathname !== "/signup" && (
                     <div className="relative">
-                      <button className="bg-white/25 hover:bg-white/35 backdrop-blur-md p-3 rounded-full text-white transition-all duration-200 shadow-lg">
+                      <button 
+                        onClick={handleCartClick}
+                        className={`p-3 rounded-full text-white transition-all duration-200 shadow-lg ${
+                          location.pathname === '/cart'
+                            ? 'bg-white text-yellow-500'
+                            : 'bg-white/25 hover:bg-white/35 backdrop-blur-md'
+                        }`}
+                      >
                         <svg
                           className="w-6 h-6"
                           fill="none"
@@ -124,6 +135,10 @@ const DynamicNavigation = () => {
                           <circle cx="20" cy="20" r="1" />
                         </svg>
                       </button>
+                      {/* Cart count badge */}
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        3
+                      </span>
                     </div>
                   )}
 
@@ -152,7 +167,7 @@ const DynamicNavigation = () => {
                             {user?.name || user?.UserName || "Guest"}
                           </div>
                           <div className="text-xs text-white/70">
-                            {user?.role || "Null"}
+                            {user?.role || "Customer"}
                           </div>
                         </div>
 
@@ -203,7 +218,7 @@ const DynamicNavigation = () => {
               </>
             ) : (
               <>
-                {/* Sign In Button - only show on landing if not authenticated */}
+                {/* Authentication buttons for different pages */}
                 {location.pathname === "/" && (
                   <>
                     <button
@@ -223,26 +238,22 @@ const DynamicNavigation = () => {
 
                 {/* Show Sign Up - in Login page */}
                 {location.pathname === "/login" && (
-                  <>
-                    <button
-                      onClick={handleSignUpClick}
-                      className="bg-white text-yellow-500 hover:bg-gray-50 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-md cursor-pointer"
-                    >
-                      Sign Up
-                    </button>
-                  </>
+                  <button
+                    onClick={handleSignUpClick}
+                    className="bg-white text-yellow-500 hover:bg-gray-50 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-md cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
                 )}
 
                 {/* Show Sign In - in Signup page */}
                 {location.pathname === "/signup" && (
-                  <>
-                    <button
-                      onClick={handleSignInClick}
-                      className="bg-white text-yellow-500 hover:bg-gray-50 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-md cursor-pointer"
-                    >
-                      Sign In
-                    </button>
-                  </>
+                  <button
+                    onClick={handleSignInClick}
+                    className="bg-white text-yellow-500 hover:bg-gray-50 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-md cursor-pointer"
+                  >
+                    Sign In
+                  </button>
                 )}
               </>
             )}
