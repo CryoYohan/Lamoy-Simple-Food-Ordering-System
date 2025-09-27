@@ -221,7 +221,7 @@ const DynamicNavigation = () => {
                     </button>
                     <button
                       onClick={handleSignUpClick}
-                      className="bg-white text-yellow-500 hover:bg-gray-50 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-md cursor-pointer"
+                      className="bg-white text-yellow-500 hover:bg-gray-50 px-6 py-3 rounded-full text-sm font-medium transition-all duration-200 hover:shadow-md cursor-pointer"
                     >
                       Sign Up
                     </button>
