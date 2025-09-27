@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import DynamicNavigation from '../components/dynamicNavbar';
-import bgImage from '../assets/MAIN4.png';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import DynamicNavigation from "../components/dynamicNavbar";
+import bgImage from "../assets/MAIN4.png";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const WelcomeLogin = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState({
     hero: false,
-    form: false
+    form: false,
   });
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -21,22 +21,22 @@ const WelcomeLogin = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setIsVisible(prev => ({
+            setIsVisible((prev) => ({
               ...prev,
-              [entry.target.dataset.section]: true
+              [entry.target.dataset.section]: true,
             }));
           }
         });
       },
-      { 
+      {
         threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
+        rootMargin: "0px 0px -50px 0px",
       }
     );
 
     // Observe all sections with data-section attribute
-    const sections = document.querySelectorAll('[data-section]');
-    sections.forEach(section => observer.observe(section));
+    const sections = document.querySelectorAll("[data-section]");
+    sections.forEach((section) => observer.observe(section));
 
     // Cleanup observer on component unmount
     return () => observer.disconnect();
@@ -44,7 +44,7 @@ const WelcomeLogin = () => {
 
   // Set hero section visible immediately on mount
   useEffect(() => {
-    setIsVisible(prev => ({ ...prev, hero: true }));
+    setIsVisible((prev) => ({ ...prev, hero: true }));
   }, []);
 
   const handleSignIn = async (e) => {
@@ -53,13 +53,13 @@ const WelcomeLogin = () => {
 
     // Client-side validation
     if (!email.trim()) {
-      alert('Email Required: Please enter your email address to sign in.');
+      alert("Email Required: Please enter your email address to sign in.");
       setIsLoading(false);
       return;
     }
 
     if (!password.trim()) {
-      alert('Password Required: Please enter your password to sign in.');
+      alert("Password Required: Please enter your password to sign in.");
       setIsLoading(false);
       return;
     }
@@ -67,16 +67,18 @@ const WelcomeLogin = () => {
     // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      alert('Invalid Email Format: Please enter a valid email address (example: user@example.com).');
+      alert(
+        "Invalid Email Format: Please enter a valid email address (example: user@example.com)."
+      );
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5143/api/login', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5143/api/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           Email: email,
@@ -86,97 +88,111 @@ const WelcomeLogin = () => {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Show success alert
-        alert('Welcome Back! Successfully signed in! Welcome back to Lamoy.');
+        alert("Welcome Back! Successfully signed in! Welcome back to Lamoy.");
 
         // Auto-navigate after success message
         setTimeout(() => {
-          login({
-            email: email,
-            userName: data.userName || data.UserName || email.split('@')[0],
-          });
-          navigate('/home');
+          login(data.token);
+          navigate("/home");
         }, 1000);
       } else {
         const status = response.status;
-        let message = 'We encountered an issue while signing you in. Please try again.';
+        let message =
+          "We encountered an issue while signing you in. Please try again.";
 
         if (status === 401 || status === 400) {
-          message = 'Invalid Credentials: The email or password you entered is incorrect. Please double-check your credentials and try again.';
+          message =
+            "Invalid Credentials: The email or password you entered is incorrect. Please double-check your credentials and try again.";
         } else if (status === 404) {
-          message = 'Account Not Found: No account found with this email address. Please check your email or create a new account.';
+          message =
+            "Account Not Found: No account found with this email address. Please check your email or create a new account.";
         } else if (status >= 500) {
-          message = 'Server Error: Our servers are experiencing issues. Please try again in a few minutes.';
+          message =
+            "Server Error: Our servers are experiencing issues. Please try again in a few minutes.";
         }
 
         alert(message);
       }
     } catch (err) {
-      alert('Connection Error: We\'re having trouble connecting to our servers. Please check your internet connection and try again.');
-      console.error('Login error:', err);
+      alert(
+        "Connection Error: We're having trouble connecting to our servers. Please check your internet connection and try again."
+      );
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleForgotPassword = () => {
-    navigate('/forgot-password');
+    navigate("/forgot-password");
   };
 
   const handleCreateAccount = () => {
-    navigate('/signup');
+    navigate("/signup");
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden font-sans">
       {/* Upper half with background image */}
-      <div 
+      <div
         className="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center bg-no-repeat"
-        style={{ 
+        style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center center'
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
         }}
       />
       {/* Lower half with white background */}
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-white" />
-      
+
       <div className="absolute w-full z-50">
         <DynamicNavigation />
       </div>
-      
+
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div 
+        <div
           className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${
-            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            isVisible.hero
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
           }`}
           data-section="hero"
         >
-          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">Welcome Back!</h1>
+          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">
+            Welcome Back!
+          </h1>
           <p className="text-white/90 text-base sm:text-lg px-4 max-w-md sm:max-w-none mx-auto">
             Access your account and enjoy your favorite
-            <span className="hidden sm:inline"><br /></span>
+            <span className="hidden sm:inline">
+              <br />
+            </span>
             <span className="sm:hidden"> </span>
             Filipino meals anytime.
           </p>
         </div>
-        
-        <div 
+
+        <div
           className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${
-            isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            isVisible.form
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
           }`}
           data-section="form"
-          style={{ transitionDelay: '300ms' }}
+          style={{ transitionDelay: "300ms" }}
         >
           <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border border-gray-100">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-700 mb-8 sm:mb-10 text-center">
               Sign In to <span className="text-yellow-500">Lamoy</span>
             </h2>
-          
+
             <form onSubmit={handleSignIn} className="space-y-5 sm:space-y-6">
               <div>
-                <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2"
+                >
                   Email
                 </label>
                 <input
@@ -189,9 +205,12 @@ const WelcomeLogin = () => {
                   disabled={isLoading}
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2"
+                >
                   Password
                 </label>
                 <input
@@ -204,9 +223,9 @@ const WelcomeLogin = () => {
                   disabled={isLoading}
                 />
               </div>
-              
+
               <div className="text-right">
-                <button 
+                <button
                   type="button"
                   onClick={handleForgotPassword}
                   className="text-xs sm:text-sm text-yellow-500 hover:text-yellow-600 transition-colors font-medium"
@@ -215,7 +234,7 @@ const WelcomeLogin = () => {
                   Forgot Password?
                 </button>
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isLoading}
@@ -223,20 +242,36 @@ const WelcomeLogin = () => {
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Signing In...
                   </>
                 ) : (
-                  'Sign In'
+                  "Sign In"
                 )}
               </button>
-              
+
               <div className="text-center text-xs sm:text-sm text-gray-600 pt-2">
-                Don't have an Account?{' '}
-                <button 
+                Don't have an Account?{" "}
+                <button
                   type="button"
                   onClick={handleCreateAccount}
                   className="text-yellow-500 hover:text-yellow-600 font-semibold hover:underline transition-all"

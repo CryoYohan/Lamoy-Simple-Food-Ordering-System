@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
+using BCrypt.Net;
 
 namespace backend.Controllers
 {
-    [Route("api/user")]
+    [Route("api/register")]
     [ApiController]
     public class RegisterController : ControllerBase
     {
@@ -37,12 +37,13 @@ namespace backend.Controllers
             if (_context.Users.Any(u => u.Email == request.Email))
                 return Conflict("Email already exists.");
 
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             var newUser = new Models.User
             {
                 UserName = request.UserName,
                 Email = request.Email,
-                PasswordHash = request.Password, 
+                PasswordHash = passwordHash, 
                 FullName = request.FullName,
                 PhoneNumber = request.PhoneNumber,
                 Address = request.Address,

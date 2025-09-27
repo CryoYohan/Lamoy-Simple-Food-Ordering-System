@@ -51,6 +51,7 @@ namespace backend.Controllers
             {
                 return Forbid("Access denied. Admin role required.");
             }
+
             var orders = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
@@ -190,7 +191,6 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<object>> CreateOrder([FromBody] CreateOrderRequest request)
         {
-            // Validate request
             if (request.OrderItems == null || !request.OrderItems.Any())
             {
                 return BadRequest("Order must contain at least one item.");
@@ -201,14 +201,12 @@ namespace backend.Controllers
                 return BadRequest("Delivery address is required.");
             }
 
-            // Verify user exists
             var user = await _context.Users.FindAsync(request.UserId);
             if (user == null)
             {
                 return NotFound("User not found.");
             }
 
-            // Verify all menu items exist and are available
             var itemIds = request.OrderItems.Select(oi => oi.ItemId).ToList();
             var menuItems = await _context.MenuItems
                 .Where(mi => itemIds.Contains(mi.ItemId) && mi.IsAvailable)
@@ -219,15 +217,13 @@ namespace backend.Controllers
                 return BadRequest("One or more menu items are not available or do not exist.");
             }
 
-            // Calculate total price
             decimal totalPrice = 0;
             var orderItems = new List<OrderItem>();
 
             foreach (var orderItemRequest in request.OrderItems)
             {
                 var menuItem = menuItems.First(mi => mi.ItemId == orderItemRequest.ItemId);
-                var itemTotal = menuItem.Price * orderItemRequest.Quantity;
-                totalPrice += itemTotal;
+                totalPrice += menuItem.Price * orderItemRequest.Quantity;
 
                 orderItems.Add(new OrderItem
                 {
@@ -237,7 +233,6 @@ namespace backend.Controllers
                 });
             }
 
-            // Create order
             var order = new Order
             {
                 UserId = request.UserId,
@@ -251,7 +246,6 @@ namespace backend.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            // Return created order with full details
             var createdOrder = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
@@ -301,11 +295,11 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOrder(int id, [FromBody] CreateOrderRequest request, [FromQuery] int adminUserId)
         {
-            // Check if user is admin
             if (!await IsUserAdmin(adminUserId))
             {
                 return Forbid("Access denied. Admin role required.");
             }
+
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.OrderId == id);
@@ -315,7 +309,6 @@ namespace backend.Controllers
                 return NotFound("Order not found.");
             }
 
-            // Validate request
             if (request.OrderItems == null || !request.OrderItems.Any())
             {
                 return BadRequest("Order must contain at least one item.");
@@ -326,14 +319,12 @@ namespace backend.Controllers
                 return BadRequest("Delivery address is required.");
             }
 
-            // Verify user exists
             var user = await _context.Users.FindAsync(request.UserId);
             if (user == null)
             {
                 return NotFound("User not found.");
             }
 
-            // Verify all menu items exist and are available
             var itemIds = request.OrderItems.Select(oi => oi.ItemId).ToList();
             var menuItems = await _context.MenuItems
                 .Where(mi => itemIds.Contains(mi.ItemId) && mi.IsAvailable)
@@ -344,18 +335,15 @@ namespace backend.Controllers
                 return BadRequest("One or more menu items are not available or do not exist.");
             }
 
-            // Remove existing order items
             _context.OrderItems.RemoveRange(order.OrderItems);
 
-            // Calculate new total price and create new order items
             decimal totalPrice = 0;
             var newOrderItems = new List<OrderItem>();
 
             foreach (var orderItemRequest in request.OrderItems)
             {
                 var menuItem = menuItems.First(mi => mi.ItemId == orderItemRequest.ItemId);
-                var itemTotal = menuItem.Price * orderItemRequest.Quantity;
-                totalPrice += itemTotal;
+                totalPrice += menuItem.Price * orderItemRequest.Quantity;
 
                 newOrderItems.Add(new OrderItem
                 {
@@ -366,7 +354,6 @@ namespace backend.Controllers
                 });
             }
 
-            // Update order
             order.UserId = request.UserId;
             order.TotalPrice = totalPrice;
             order.DeliveryAddress = request.DeliveryAddress;
@@ -381,18 +368,17 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id, [FromQuery] int adminUserId)
         {
-            // Check if user is admin
             if (!await IsUserAdmin(adminUserId))
             {
                 return Forbid("Access denied. Admin role required.");
             }
+
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
                 return NotFound("Order not found.");
             }
 
-            // Only allow deletion of pending orders
             if (order.Status != OrderStatus.Pending)
             {
                 return BadRequest("Only pending orders can be deleted.");

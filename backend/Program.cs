@@ -2,7 +2,9 @@ using backend.Data;
 using backend.Services; // 👈 add this
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 // Load secrets from .env file
 Env.Load();
 
@@ -13,6 +15,30 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+// Add Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
+
+//JWT Token Helper
+builder.Services.AddScoped<JwtTokenHelper>();
 
 // Application DB Context
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
@@ -34,6 +60,7 @@ builder.Services.AddCors(options =>
 
 // ✅ Register EmailService
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -46,6 +73,10 @@ if (app.Environment.IsDevelopment())
 //Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
+
+//Use Auth
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Use CORS before other middleware that handles requests
 app.UseCors("AllowReactApp");

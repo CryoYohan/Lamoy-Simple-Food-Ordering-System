@@ -2,25 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend.Data;
 using Microsoft.AspNetCore.Mvc;
-
-namespace backend.LoginControllers
+using backend.DTOs.User;
+namespace backend.Controllers
 {
-    [Route("api/login")]
     [ApiController]
-    public class LoginMineController : ControllerBase
+    [Route("api/login")]
+    public class AuthController : ControllerBase
     {
-        private readonly Data.ApplicationDBContext _context;
+        private readonly JwtTokenHelper _jwtHelper;
+        private readonly ApplicationDBContext _context;
 
-        public LoginMineController(Data.ApplicationDBContext context)
+        public AuthController(JwtTokenHelper jwtHelper, ApplicationDBContext context)
         {
+            _jwtHelper = jwtHelper;
             _context = context;
-        }
-
-        public class LoginRequest
-        {
-            public string Email { get; set; }
-            public string Password { get; set; }
         }
 
         [HttpPost]
@@ -30,10 +27,10 @@ namespace backend.LoginControllers
                 return BadRequest("Email and password are required.");
 
             var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
-            if (user != null && user.PasswordHash == request.Password)
+            if (user != null && BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                // Return only safe user info
-                return Ok(new { user.UserId, user.UserName, user.Email, user.Role });
+                var token = _jwtHelper.GenerateToken(request.Email, user.Role.ToString(),user.UserName);
+                return Ok(new { Token = token });
             }
             return Unauthorized("Invalid Email or password.");
         }
