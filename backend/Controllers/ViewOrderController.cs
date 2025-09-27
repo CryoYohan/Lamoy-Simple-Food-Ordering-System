@@ -16,6 +16,13 @@ namespace backend.Controllers
             _context = context;
         }
 
+        // Helper method to check if user is admin
+        private async Task<bool> IsUserAdmin(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return user?.Role == UserRole.Admin;
+        }
+
         // DTOs for request/response
         public class CreateOrderRequest
         {
@@ -37,8 +44,13 @@ namespace backend.Controllers
 
         // GET: api/orders - Get all orders (Admin only)
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetAllOrders()
+        public async Task<ActionResult<IEnumerable<object>>> GetAllOrders([FromQuery] int adminUserId)
         {
+            // Check if user is admin
+            if (!await IsUserAdmin(adminUserId))
+            {
+                return Forbid("Access denied. Admin role required.");
+            }
             var orders = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
@@ -287,8 +299,13 @@ namespace backend.Controllers
 
         // PUT: api/orders/{id} - Update entire order (Admin only)
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, [FromBody] CreateOrderRequest request)
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] CreateOrderRequest request, [FromQuery] int adminUserId)
         {
+            // Check if user is admin
+            if (!await IsUserAdmin(adminUserId))
+            {
+                return Forbid("Access denied. Admin role required.");
+            }
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.OrderId == id);
@@ -362,8 +379,13 @@ namespace backend.Controllers
 
         // DELETE: api/orders/{id} - Delete order (Admin only)
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOrder(int id)
+        public async Task<IActionResult> DeleteOrder(int id, [FromQuery] int adminUserId)
         {
+            // Check if user is admin
+            if (!await IsUserAdmin(adminUserId))
+            {
+                return Forbid("Access denied. Admin role required.");
+            }
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
