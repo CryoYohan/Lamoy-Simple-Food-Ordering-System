@@ -146,12 +146,12 @@ const OrdersPage = () => {
 
   // Handle order actions
   const handleViewOrder = (orderId) => {
-    console.log('View order:', orderId);
+    navigate(`/view-order/${orderId}`);
     // Implement view order logic
   };
 
   const handleTrackOrder = (orderId) => {
-    console.log('Track order:', orderId);
+    navigate(`/track-order/${orderId}`);
     // Implement track order logic
   };
 

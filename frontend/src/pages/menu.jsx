@@ -11,6 +11,12 @@ const Menu = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All Items');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isVisible, setIsVisible] = useState({
+    hero: false,
+    categories: false,
+    menuSection: false,
+    callToAction: false
+  });
 
   // Categories data
   useEffect(() => {
@@ -31,6 +37,38 @@ const Menu = () => {
 
     fetchData();
   },[])
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(prev => ({
+              ...prev,
+              [entry.target.dataset.section]: true
+            }));
+          }
+        });
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+
+    // Observe all sections with data-section attribute
+    const sections = document.querySelectorAll('[data-section]');
+    sections.forEach(section => observer.observe(section));
+
+    // Cleanup observer on component unmount
+    return () => observer.disconnect();
+  }, []);
+
+  // Set hero section visible immediately on mount
+  useEffect(() => {
+    setIsVisible(prev => ({ ...prev, hero: true }));
+  }, []);
   
   // Filter menu items based on category and search
   const filteredItems = menuItems.filter(item => {
@@ -63,8 +101,11 @@ const Menu = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center center'
         }}
+        data-section="hero"
       >
-        <div className="text-center max-w-4xl">
+        <div className={`text-center max-w-4xl transition-all duration-1000 ${
+          isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}>
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
             Select a Category
           </h1>
@@ -74,9 +115,14 @@ const Menu = () => {
         </div>
       </div>
 
-      {/* Category Selection Section - Floating between backgrounds */}
-      <div className="relative -mt-16 mb-16 px-4 sm:px-6 lg:px-8 z-10">
-        <div className="max-w-5xl mx-auto">
+      {/* Category Selection Section - Fixed in place */}
+      <div className="relative -mt-16 mb-16 px-4 sm:px-6 lg:px-8 z-30">
+        <div 
+          className={`max-w-5xl mx-auto transition-all duration-1000 ${
+            isVisible.categories ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}
+          data-section="categories"
+        >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
             {categories.map((category, index) => {
               const getIcon = (categoryName) => {
@@ -115,11 +161,14 @@ const Menu = () => {
                 <button
                   key={category.id || `custom-${category.name}`}
                   onClick={() => setSelectedCategory(category.name)}
-                  className={`bg-white rounded-2xl p-6 sm:p-10 border border-gray-200 ${
+                  className={`bg-white rounded-2xl p-6 sm:p-10 border border-gray-200 transition-all duration-300 ${
                     selectedCategory === category.name 
-                      ? 'ring-2 ring-yellow-400/50 ' 
-                      : 'hover: bg-gray-50 hover:shadow-lg transition-all duration-300'
+                      ? 'ring-2 ring-yellow-400/50 shadow-lg transform scale-105' 
+                      : 'hover:bg-gray-50 hover:shadow-lg hover:scale-105'
                   }`}
+                  style={{ 
+                    transitionDelay: `${index * 100}ms`
+                  }}
                 >
                   <div className="text-center">
                     <div className="mb-4 flex justify-center">
@@ -137,9 +186,16 @@ const Menu = () => {
       </div>
 
       {/* Menu Section */}
-      <div className="bg-white py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+      <div 
+        className={`bg-white py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${
+          isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+        data-section="menuSection"
+      >
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col lg:flex-row justify-between items-center mb-12 sm:mb-16 gap-6">
+          <div className={`flex flex-col lg:flex-row justify-between items-center mb-12 sm:mb-16 gap-6 transition-all duration-1000 ${
+            isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`} style={{ transitionDelay: '200ms' }}>
             <div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-2">
                 Category: <span className="text-yellow-500">{selectedCategory}</span>
@@ -161,7 +217,7 @@ const Menu = () => {
                 placeholder="Search menu..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full lg:w-80 pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-gray-700 placeholder-gray-400"
+                className="block w-full lg:w-80 pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-gray-700 placeholder-gray-400 transition-all duration-300"
               />
             </div>
           </div>
@@ -172,7 +228,12 @@ const Menu = () => {
               {filteredItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  className={`bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:scale-105 ${
+                    isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  }`}
+                  style={{ 
+                    transitionDelay: `${400 + (index * 100)}ms`
+                  }}
                 >
                   {/* Item Image */}
                   <div className="relative h-48 sm:h-56 bg-yellow-500 flex items-center justify-center overflow-hidden rounded-t-2xl">
@@ -210,7 +271,9 @@ const Menu = () => {
             </div>
           ) : (
             /* No Items Found */
-            <div className="text-center py-16">
+            <div className={`text-center py-16 transition-all duration-1000 ${
+              isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`} style={{ transitionDelay: '600ms' }}>
               <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -235,7 +298,12 @@ const Menu = () => {
       </div>
 
       {/* Call to Action Section */}
-      <div className="bg-gray-100 py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
+      <div 
+        className={`bg-gray-100 py-16 sm:py-20 px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${
+          isVisible.callToAction ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+        data-section="callToAction"
+      >
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4 sm:mb-6">
             Ready to <span className="text-yellow-500">Order?</span>
@@ -243,7 +311,9 @@ const Menu = () => {
           <p className="text-gray-600 text-lg leading-relaxed mb-8 sm:mb-12 max-w-2xl mx-auto">
             Found something delicious? Add your favorite items to your cart and enjoy authentic Filipino flavors delivered fresh to you.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center transition-all duration-1000 ${
+            isVisible.callToAction ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`} style={{ transitionDelay: '300ms' }}>
             <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m0 0L12 18m0 0l2.5-2.5M12 18l-2.5-2.5" />
