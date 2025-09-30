@@ -78,19 +78,20 @@ namespace backend.Controllers
             if (id != updatedItem.ItemId)
                 return BadRequest("Item ID mismatch.");
 
-            var existingItem = await _context.MenuItems.FindAsync(id);
+            var existingItem = await _context.MenuItems.FindAsync(id); /// Line 81-83 Service Layer
+
             if (existingItem == null)
                 return NotFound("Menu item not found.");
 
             // Update fields
-            existingItem.Name = updatedItem.Name;
+            existingItem.Name = updatedItem.Name;     /// Move to Service Layer
             existingItem.Description = updatedItem.Description;
             existingItem.Price = updatedItem.Price;
             existingItem.ImageUrl = updatedItem.ImageUrl;
             existingItem.CategoryId = updatedItem.CategoryId;
             existingItem.IsAvailable = updatedItem.IsAvailable;
 
-            try
+            try /// Move to Repository Layer
             {
                 await _context.SaveChangesAsync();
             }

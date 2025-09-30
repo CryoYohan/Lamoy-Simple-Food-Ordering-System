@@ -10,7 +10,11 @@ import Menu from './pages/menu';
 import CheckOutPage from './pages/checkOut.jsx';
 import ResetPassword from './pages/ResetPassword';
 import CartPage from './pages/cart.jsx';
+import ViewOrderPage from './pages/ViewOrder';
+import TrackOrderPage from './pages/TrackOrder';
 import OrdersPage from './pages/orders';
+import ProfilePage from './pages/Profile';
+
 
 const App = () => {
   return (
@@ -27,6 +31,9 @@ const App = () => {
           <Route path="/checkout" element={<CheckOutPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/view-order/:orderId" element={<ViewOrderPage />} />
+          <Route path="/track-order/:orderId" element={<TrackOrderPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </Router>
     </AuthProvider>

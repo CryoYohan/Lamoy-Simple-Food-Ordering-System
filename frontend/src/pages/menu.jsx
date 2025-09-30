@@ -12,6 +12,14 @@ const Menu = () => {
   const [selectedCategory, setSelectedCategory] = useState('All Items');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Animation state
+  const [isVisible, setIsVisible] = useState({
+    hero: false,
+    menuSection: false,
+    menuItems: false,
+    callToAction: false
+  });
+
   // Categories data
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +39,41 @@ const Menu = () => {
 
     fetchData();
   },[])
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(prev => ({
+              ...prev,
+              [entry.target.dataset.section]: true
+            }));
+          }
+        });
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+
+    // Observe all sections with data-section attribute
+    const sections = document.querySelectorAll('[data-section]');
+    sections.forEach(section => observer.observe(section));
+
+    // Cleanup observer on component unmount
+    return () => observer.disconnect();
+  }, []);
+
+  // Set hero section visible immediately on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(prev => ({ ...prev, hero: true }));
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Filter menu items based on category and search
   const filteredItems = menuItems.filter(item => {
@@ -64,7 +107,12 @@ const Menu = () => {
           backgroundPosition: 'center center'
         }}
       >
-        <div className="text-center max-w-4xl">
+        <div 
+          className={`text-center max-w-4xl transition-all duration-1000 ease-out ${
+            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+          data-section="hero"
+        >
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
             Select a Category
           </h1>
@@ -139,7 +187,12 @@ const Menu = () => {
       {/* Menu Section */}
       <div className="bg-white py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col lg:flex-row justify-between items-center mb-12 sm:mb-16 gap-6">
+          <div 
+            className={`flex flex-col lg:flex-row justify-between items-center mb-12 sm:mb-16 gap-6 transition-all duration-800 ease-out ${
+              isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+            data-section="menuSection"
+          >
             <div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-2">
                 Category: <span className="text-yellow-500">{selectedCategory}</span>
@@ -168,11 +221,21 @@ const Menu = () => {
 
           {/* Menu Items Grid */}
           {filteredItems.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div 
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 transition-all duration-1000 ease-out ${
+                isVisible.menuItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+              }`}
+              data-section="menuItems"
+            >
               {filteredItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  className={`bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:scale-105 ${
+                    isVisible.menuItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  }`}
+                  style={{ 
+                    transitionDelay: isVisible.menuItems ? `${200 + (index * 100)}ms` : '0ms'
+                  }}
                 >
                   {/* Item Image */}
                   <div className="relative h-48 sm:h-56 bg-yellow-500 flex items-center justify-center overflow-hidden rounded-t-2xl">
@@ -210,7 +273,12 @@ const Menu = () => {
             </div>
           ) : (
             /* No Items Found */
-            <div className="text-center py-16">
+            <div 
+              className={`text-center py-16 transition-all duration-800 ease-out ${
+                isVisible.menuItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+              data-section="menuItems"
+            >
               <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -236,7 +304,12 @@ const Menu = () => {
 
       {/* Call to Action Section */}
       <div className="bg-gray-100 py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
+        <div 
+          className={`max-w-4xl mx-auto text-center transition-all duration-1000 ease-out ${
+            isVisible.callToAction ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+          data-section="callToAction"
+        >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4 sm:mb-6">
             Ready to <span className="text-yellow-500">Order?</span>
           </h2>
