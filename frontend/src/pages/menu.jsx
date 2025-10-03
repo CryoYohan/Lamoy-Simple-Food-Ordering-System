@@ -26,12 +26,22 @@ const Menu = () => {
           axios.get('http://localhost:5143/api/menu/categories'),
           axios.get('http://localhost:5143/api/menu')
         ]);
-        const allItemsCategory = { categoryId: 0, name: 'All Items' };
 
-        setCategories([allItemsCategory, ...catRes.data]);
+        console.log('Categories API Response:', catRes.data);
+        console.log('Menu Items API Response:', itemsRes.data);
+
+        const allItemsCategory = { categoryId: 0, name: 'All Items' };
+        const categoriesData = [allItemsCategory, ...catRes.data];
+
+        setCategories(categoriesData);
         setMenuItems(itemsRes.data);
+
+        // Debug: Log category IDs and menu item category IDs
+        console.log('Categories with IDs:', categoriesData.map(cat => ({ name: cat.name, id: cat.id, categoryId: cat.categoryId })));
+        console.log('Menu items with category IDs:', itemsRes.data.map(item => ({ name: item.name, categoryId: item.categoryId })));
+
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching data:', err);
       }
     }
 
@@ -57,11 +67,9 @@ const Menu = () => {
       }
     );
 
-    // Observe all sections with data-section attribute
     const sections = document.querySelectorAll('[data-section]');
     sections.forEach(section => observer.observe(section));
 
-    // Cleanup observer on component unmount
     return () => observer.disconnect();
   }, []);
 
@@ -80,13 +88,8 @@ const Menu = () => {
       setCartCount(storedCart.reduce((sum, item) => sum + item.quantity, 0));
     };
 
-    // Run immediately
     updateCartCount();
-
-    // Update when storage changes (other tabs or components)
     window.addEventListener("storage", updateCartCount);
-
-    // Update when user comes back to the page
     window.addEventListener("focus", updateCartCount);
 
     return () => {
@@ -95,21 +98,43 @@ const Menu = () => {
     };
   }, []);
 
-  // Filter menu items based on category and search
+  // FIXED: Filter menu items based on category and search
   const filteredItems = menuItems.filter(item => {
-    // if "All Items" is chosen, always true
+    // If "All Items" is chosen, show all items
+    if (selectedCategory === 'All Items') {
+      return true;
+    }
+
+    // Find the selected category from categories array
+    const selectedCat = categories.find(cat => cat.name === selectedCategory);
+
+    if (!selectedCat) {
+      console.log('Selected category not found:', selectedCategory);
+      return false;
+    }
+
+    // Debug logging
+    console.log('Selected Category:', selectedCat);
+    console.log('Item:', item.name, 'Category ID:', item.categoryId);
+
+    // Check if item's categoryId matches the selected category's id or categoryId
     const matchesCategory =
-      selectedCategory === 'All Items'
-        ? true
-        : item.categoryId === categories.find(cat => cat.name === selectedCategory)?.id
-        || item.categoryId === categories.find(cat => cat.name === selectedCategory)?.categoryId;
+      item.categoryId === selectedCat.id ||
+      item.categoryId === selectedCat.categoryId;
 
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
 
+    console.log('Matches Category:', matchesCategory, 'Matches Search:', matchesSearch);
+
     return matchesCategory && matchesSearch;
   });
+
+  // Debug: Log filtered items whenever dependencies change
+  useEffect(() => {
+    console.log('Filtered Items:', filteredItems.map(item => item.name));
+  }, [filteredItems]);
 
   return (
     <div className="font-sans bg-white min-h-screen">
@@ -183,7 +208,10 @@ const Menu = () => {
               return (
                 <button
                   key={category.id || `custom-${category.name}`}
-                  onClick={() => setSelectedCategory(category.name)}
+                  onClick={() => {
+                    console.log('Selected category:', category.name);
+                    setSelectedCategory(category.name);
+                  }}
                   className={`bg-white rounded-2xl p-6 sm:p-10 border border-gray-200 transition-all duration-300 ${selectedCategory === category.name
                     ? 'ring-2 ring-yellow-400/50 shadow-lg transform scale-105'
                     : 'hover:bg-gray-50 hover:shadow-lg hover:scale-105'
@@ -280,15 +308,19 @@ const Menu = () => {
                       <button
                         onClick={() => {
                           const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-                          const itemExists = existingCart.find(i => i.id === item.id);
+                          const itemExists = existingCart.find(i => i.itemId === item.itemId);
 
                           let updatedCart;
                           if (itemExists) {
                             updatedCart = existingCart.map(i =>
-                              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                              i.itemId === item.itemId ? { ...i, quantity: i.quantity + 1 } : i
                             );
                           } else {
-                            updatedCart = [...existingCart, { ...item, quantity: 1, image: bowlImage }];
+                            updatedCart = [...existingCart, {
+                              ...item,
+                              quantity: 1,
+                              image: bowlImage
+                            }];
                           }
 
                           localStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -298,6 +330,9 @@ const Menu = () => {
 
                           // Also update local state if needed
                           setCartCount(updatedCart.reduce((sum, item) => sum + item.quantity, 0));
+
+                          console.log('Added to cart:', item.name);
+                          console.log('Current cart:', updatedCart);
                         }}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-lg flex items-center gap-2 group"
                       >
@@ -353,7 +388,10 @@ const Menu = () => {
           </p>
           <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center transition-all duration-1000 ${isVisible.callToAction ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`} style={{ transitionDelay: '300ms' }}>
-            <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2">
+            <button
+              onClick={() => navigate('/cart')}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5m0 0L12 18m0 0l2.5-2.5M12 18l-2.5-2.5" />
               </svg>
