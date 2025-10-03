@@ -195,17 +195,17 @@ const SignUpPage = () => {
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div
-          className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${
+          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${
             isVisible.hero
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
           }`}
           data-section="hero"
         >
-          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">
+          <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
             Join Lamoy!
           </h1>
-          <p className="text-white/90 text-base sm:text-lg px-4 max-w-md sm:max-w-none mx-auto">
+          <p className="text-white/90 text-lg sm:text-xl md:text-2xl px-4 max-w-md sm:max-w-none mx-auto">
             Create your account and start enjoying
             <span className="hidden sm:inline">
               <br />
@@ -289,26 +289,27 @@ const SignUpPage = () => {
                 />
               </div>
 
-              {/* Phone Number and Password - responsive columns */}
+              <div>
+                <label
+                  htmlFor="phoneNumber"
+                  className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2"
+                >
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Password and Confirm Password - responsive columns */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label
-                    htmlFor="phoneNumber"
-                    className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2"
-                  >
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
                 <div>
                   <label
                     htmlFor="password"
@@ -328,25 +329,24 @@ const SignUpPage = () => {
                     disabled={isLoading}
                   />
                 </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2"
-                >
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
-                  required
-                  disabled={isLoading}
-                />
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2"
+                  >
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
 
               <div>

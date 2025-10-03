@@ -153,17 +153,17 @@ const WelcomeLogin = () => {
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div
-          className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${
+          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${
             isVisible.hero
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
           }`}
           data-section="hero"
         >
-          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">
+          <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
             Welcome Back!
           </h1>
-          <p className="text-white/90 text-base sm:text-lg px-4 max-w-md sm:max-w-none mx-auto">
+          <p className="text-white/90 text-lg sm:text-xl md:text-2xl px-4 max-w-md sm:max-w-none mx-auto">
             Access your account and enjoy your favorite
             <span className="hidden sm:inline">
               <br />
