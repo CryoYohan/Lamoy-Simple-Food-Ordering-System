@@ -127,8 +127,8 @@ const CheckOutPage = () => {
       >
         <div
           className={`transition-all duration-1000 ease-out ${isVisible.hero
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-8"
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
             }`}
           data-section="hero"
         >
@@ -159,8 +159,8 @@ const CheckOutPage = () => {
           {/* Breadcrumb */}
           <div
             className={`flex items-center justify-between mb-8 transition-all duration-800 ease-out ${isVisible.content
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
               }`}
             data-section="content"
           >
@@ -194,8 +194,8 @@ const CheckOutPage = () => {
             <div className="lg:col-span-2">
               <div
                 className={`bg-white rounded-xl p-6 border border-gray-200 transition-all duration-1000 ease-out ${isVisible.cartItems
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-12"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
                   }`}
                 data-section="cartItems"
               >
@@ -211,8 +211,8 @@ const CheckOutPage = () => {
                     <div
                       key={item.id}
                       className={`flex items-center p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out ${isVisible.cartItems
-                        ? "opacity-100 translate-y-0"
-                        : "opacity-0 translate-y-8"
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-8"
                         }`}
                       style={{
                         transitionDelay: isVisible.cartItems
@@ -251,7 +251,7 @@ const CheckOutPage = () => {
                         </div>
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
             </div>
@@ -261,8 +261,8 @@ const CheckOutPage = () => {
               {/* User Information */}
               <div
                 className={`bg-white rounded-xl p-6 border border-gray-200 transition-all duration-1000 ease-out ${isVisible.userInfo
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-12"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
                   }`}
                 data-section="userInfo"
               >
@@ -297,28 +297,14 @@ const CheckOutPage = () => {
                       {userInfo.address}
                     </div>
                   </div>
-
-                  {(userInfo.phoneNumber === 'Not provided' || userInfo.address === 'Not provided') && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-800 text-sm">
-                        Please update your phone number and address in your profile to complete your order.
-                      </p>
-                      <button
-                        onClick={() => navigate('/profile')}
-                        className="mt-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white rounded-lg text-sm font-medium transition-colors"
-                      >
-                        Update Profile
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
 
               {/* Payment Summary */}
               <div
                 className={`bg-white rounded-xl shadow-sm p-6 transition-all duration-1000 ease-out ${isVisible.summary
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-12"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
                   }`}
                 data-section="summary"
               >
@@ -355,18 +341,9 @@ const CheckOutPage = () => {
 
                 <button
                   onClick={handleCheckout}
-                  disabled={cartItems.length === 0 || !user?.phoneNumber || !user?.address}
-                  className={`w-full py-4 rounded-xl font-bold text-lg transition-colors shadow-lg ${cartItems.length === 0 || !user?.phoneNumber || !user?.address
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    : 'bg-yellow-400 hover:bg-yellow-500 text-white hover:shadow-xl'
-                    }`}
+                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg hover:shadow-xl"
                 >
-                  {cartItems.length === 0
-                    ? 'Cart is Empty'
-                    : !user?.phoneNumber || !user?.address
-                      ? 'Complete Profile First'
-                      : 'Confirm Order'
-                  }
+                  Confirm Order
                 </button>
               </div>
             </div>
