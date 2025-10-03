@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/LOGO2.png";
@@ -9,6 +9,41 @@ const DynamicNavigation = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [cartCount, setCartCount] = useState(0);
+
+  // In navbar.jsx, enhance the useEffect:
+  useEffect(() => {
+    const updateCartCount = () => {
+      try {
+        const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+        const totalItems = storedCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        setCartCount(totalItems);
+      } catch (error) {
+        console.error("Error updating cart count:", error);
+        setCartCount(0);
+      }
+    };
+
+    // Initial update
+    updateCartCount();
+
+    // Listen for custom cart update events
+    window.addEventListener("cartUpdated", updateCartCount);
+
+    // Listen for storage events (changes from other tabs)
+    window.addEventListener("storage", updateCartCount);
+
+    // Update when page becomes visible
+    window.addEventListener("focus", updateCartCount);
+
+    return () => {
+      window.removeEventListener("cartUpdated", updateCartCount);
+      window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("focus", updateCartCount);
+    };
+  }, []);
+
 
   const handleHomeClick = () => {
     if (isAuthenticated) {
@@ -127,31 +162,28 @@ const DynamicNavigation = () => {
                     <div className="flex items-center space-x-8">
                       <button
                         onClick={handleHomeClick}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                          location.pathname === "/home"
-                            ? "bg-white text-yellow-500 shadow-md"
-                            : "text-white hover:bg-white/20"
-                        }`}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${location.pathname === "/home"
+                          ? "bg-white text-yellow-500 shadow-md"
+                          : "text-white hover:bg-white/20"
+                          }`}
                       >
                         Home
                       </button>
                       <button
                         onClick={handleMenuClick}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                          location.pathname === "/menu"
-                            ? "bg-white text-yellow-500 shadow-md"
-                            : "text-white hover:bg-white/20"
-                        }`}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${location.pathname === "/menu"
+                          ? "bg-white text-yellow-500 shadow-md"
+                          : "text-white hover:bg-white/20"
+                          }`}
                       >
                         Menu
                       </button>
                       <button
                         onClick={handleOrdersClick}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                          location.pathname === "/orders" || location.pathname.startsWith("/view-order") || location.pathname.startsWith("/track-order")
-                            ? "bg-white text-yellow-500 shadow-md"
-                            : "text-white hover:bg-white/20"
-                        }`}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${location.pathname === "/orders" || location.pathname.startsWith("/view-order") || location.pathname.startsWith("/track-order")
+                          ? "bg-white text-yellow-500 shadow-md"
+                          : "text-white hover:bg-white/20"
+                          }`}
                       >
                         Orders
                       </button>
@@ -168,13 +200,12 @@ const DynamicNavigation = () => {
                   {location.pathname !== "/login" &&
                     location.pathname !== "/signup" && (
                       <div className="relative">
-                        <button 
+                        <button
                           onClick={handleCartClick}
-                          className={`p-3 rounded-full text-white transition-all duration-200 shadow-lg ${
-                            location.pathname === '/cart'
-                              ? 'bg-white text-yellow-500'
-                              : 'bg-white/25 hover:bg-white/35 backdrop-blur-md'
-                          }`}
+                          className={`p-3 rounded-full text-white transition-all duration-200 shadow-lg ${location.pathname === '/cart'
+                            ? 'bg-white text-yellow-500'
+                            : 'bg-white/25 hover:bg-white/35 backdrop-blur-md'
+                            }`}
                         >
                           <svg
                             className="w-6 h-6"
@@ -193,9 +224,12 @@ const DynamicNavigation = () => {
                           </svg>
                         </button>
                         {/* Cart count badge */}
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          3
-                        </span>
+                        {cartCount > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {cartCount}
+                          </span>
+                        )}
+
                       </div>
                     )}
 
@@ -230,9 +264,8 @@ const DynamicNavigation = () => {
 
                           {/* Dropdown Arrow */}
                           <svg
-                            className={`w-4 h-4 text-white transition-transform duration-200 ${
-                              isProfileDropdownOpen ? "rotate-180" : ""
-                            }`}
+                            className={`w-4 h-4 text-white transition-transform duration-200 ${isProfileDropdownOpen ? "rotate-180" : ""
+                              }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -339,17 +372,16 @@ const DynamicNavigation = () => {
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-4">
               {/* Cart Icon for Mobile - Only show when authenticated and not on auth pages */}
-              {isAuthenticated && 
+              {isAuthenticated &&
                 location.pathname !== "/login" &&
                 location.pathname !== "/signup" && (
                   <div className="relative">
-                    <button 
+                    <button
                       onClick={handleCartClick}
-                      className={`p-3 rounded-full text-white transition-all duration-200 shadow-lg ${
-                        location.pathname === '/cart'
-                          ? 'bg-white text-yellow-500'
-                          : 'bg-white/25 hover:bg-white/35 backdrop-blur-md'
-                      }`}
+                      className={`p-3 rounded-full text-white transition-all duration-200 shadow-lg ${location.pathname === '/cart'
+                        ? 'bg-white text-yellow-500'
+                        : 'bg-white/25 hover:bg-white/35 backdrop-blur-md'
+                        }`}
                     >
                       <svg
                         className="w-6 h-6"
@@ -367,9 +399,11 @@ const DynamicNavigation = () => {
                         <circle cx="20" cy="20" r="1" />
                       </svg>
                     </button>
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      3
-                    </span>
+                    {cartCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {cartCount}
+                      </span>
+                    )}
                   </div>
                 )}
 
@@ -398,16 +432,15 @@ const DynamicNavigation = () => {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
           onClick={closeMobileMenu}
         />
       )}
 
       {/* Mobile Menu Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
-        isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
+      <div className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
         <div className="flex flex-col h-full">
           {/* Mobile Menu Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -450,11 +483,10 @@ const DynamicNavigation = () => {
                   <div className="py-4">
                     <button
                       onClick={handleHomeClickMobile}
-                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                        location.pathname === "/home"
-                          ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${location.pathname === "/home"
+                        ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                        : "text-gray-700 hover:bg-gray-50"
+                        }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -463,11 +495,10 @@ const DynamicNavigation = () => {
                     </button>
                     <button
                       onClick={handleMenuClickMobile}
-                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                        location.pathname === "/menu"
-                          ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${location.pathname === "/menu"
+                        ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                        : "text-gray-700 hover:bg-gray-50"
+                        }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -476,11 +507,10 @@ const DynamicNavigation = () => {
                     </button>
                     <button
                       onClick={handleOrdersClickMobile}
-                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                        location.pathname === "/orders" || location.pathname.startsWith("/view-order") || location.pathname.startsWith("/track-order")
-                          ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${location.pathname === "/orders" || location.pathname.startsWith("/view-order") || location.pathname.startsWith("/track-order")
+                        ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                        : "text-gray-700 hover:bg-gray-50"
+                        }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -489,11 +519,10 @@ const DynamicNavigation = () => {
                     </button>
                     <button
                       onClick={handleCartClickMobile}
-                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                        location.pathname === "/cart"
-                          ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${location.pathname === "/cart"
+                        ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                        : "text-gray-700 hover:bg-gray-50"
+                        }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 16v0a1 1 0 001 1h11" />
@@ -501,9 +530,11 @@ const DynamicNavigation = () => {
                         <circle cx="20" cy="20" r="1" />
                       </svg>
                       <span>Cart</span>
-                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        3
-                      </span>
+                      {cartCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {cartCount}
+                        </span>
+                      )}
                     </button>
                   </div>
                 )}
