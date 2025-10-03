@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/login.jsx';
@@ -8,11 +7,11 @@ import Home from './pages/home';
 import ForgotPassword from './pages/forgotPassword';
 import Menu from './pages/menu'; 
 import CheckOutPage from './pages/checkOut.jsx';
-import ResetPassword from './pages/ResetPassword';
+import ResetPassword from './pages/resetPassword.jsx';
 import CartPage from './pages/cart.jsx';
 import OrdersPage from './pages/orders';
-import ViewOrderPage from './pages/ViewOrder';
-import TrackOrderPage from './pages/TrackOrder';
+import ViewOrderPage from './pages/viewOrder.jsx';
+import TrackOrderPage from './pages/trackOrder.jsx';
 import ProfilePage from './pages/Profile';
 const App = () => {
   return (
@@ -28,6 +27,7 @@ const App = () => {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckOutPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/view-order" element={<ViewOrderPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/track-order/:orderId" element={<TrackOrderPage />} />
           <Route path="/profile" element={<ProfilePage />} />
