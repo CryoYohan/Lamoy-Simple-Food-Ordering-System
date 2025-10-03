@@ -12,7 +12,9 @@ import CartPage from './pages/cart.jsx';
 import OrdersPage from './pages/orders';
 import ViewOrderPage from './pages/viewOrder.jsx';
 import TrackOrderPage from './pages/trackOrder.jsx';
-import ProfilePage from './pages/Profile';
+
+import ProfilePage from './pages/profile.jsx';
+
 const App = () => {
   return (
     <AuthProvider>
@@ -29,6 +31,7 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/view-order" element={<ViewOrderPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/view-order/:orderId" element={<ViewOrderPage />} />
           <Route path="/track-order/:orderId" element={<TrackOrderPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
