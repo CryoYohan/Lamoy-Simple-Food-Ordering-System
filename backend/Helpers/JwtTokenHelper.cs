@@ -12,10 +12,11 @@ public class JwtTokenHelper
         _config = config;
     }
 
-    public string GenerateToken(string email, string role, string name)
+    public string GenerateToken(string userId, string email, string role, string name)
     {
         var claims = new[]
         {
+            new Claim("userId", userId),
             new Claim("email", email),
             new Claim("role", role),
             new Claim("name", name)

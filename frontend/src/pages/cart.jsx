@@ -57,28 +57,15 @@ const CartPage = () => {
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  // Debug: Log cart items structure
-  useEffect(() => {
-    console.log('Current cart items:', cartItems);
-    if (cartItems.length > 0) {
-      console.log('First item structure:', cartItems[0]);
-    }
-  }, [cartItems]);
-
   // Function to dispatch cart update event
   const dispatchCartUpdate = () => {
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
-  // Helper function to get item identifier (handles both itemId and id)
-  const getItemId = (item) => {
-    return item.itemId || item.id;
-  };
-
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity < 1) return;
     const updated = cartItems.map(item =>
-      getItemId(item) === itemId ? { ...item, quantity: newQuantity } : item
+      item.itemId === itemId ? { ...item, quantity: newQuantity } : item
     );
     setCartItems(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
@@ -88,7 +75,7 @@ const CartPage = () => {
   };
 
   const removeItem = (itemId) => {
-    const updated = cartItems.filter(item => getItemId(item) !== itemId);
+    const updated = cartItems.filter(item => item.itemId !== itemId);
     setCartItems(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
 
@@ -186,7 +173,7 @@ const CartPage = () => {
                 <div className="space-y-6">
                   {cartItems.map((item, index) => (
                     <div
-                      key={getItemId(item)}
+                      key={item.itemId}
                       className={`flex items-center p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out ${isVisible.cartItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                         }`}
                       style={{
@@ -196,7 +183,7 @@ const CartPage = () => {
                       {/* Item Image */}
                       <div className="w-20 h-20 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
                         <img
-                          src={item.image || bowlImage}
+                          src={item.image}
                           alt={item.name}
                           className="w-16 h-16 object-contain"
                         />
@@ -211,14 +198,14 @@ const CartPage = () => {
                       {/* Quantity Controls */}
                       <div className="flex items-center space-x-2 mr-6">
                         <button
-                          onClick={() => updateQuantity(getItemId(item), item.quantity - 1)}
+                          onClick={() => updateQuantity(item.itemId, item.quantity - 1)}
                           className="w-10 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded flex items-center justify-center transition-colors"
                         >
                           <span className="text-gray-700 font-medium text-lg">-</span>
                         </button>
                         <span className="min-w-[2rem] text-center font-medium text-gray-900">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(getItemId(item), item.quantity + 1)}
+                          onClick={() => updateQuantity(item.itemId, item.quantity + 1)}
                           className="w-10 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded flex items-center justify-center transition-colors"
                         >
                           <span className="text-gray-700 font-medium text-lg">+</span>
@@ -234,7 +221,7 @@ const CartPage = () => {
 
                       {/* Remove Button */}
                       <button
-                        onClick={() => removeItem(getItemId(item))}
+                        onClick={() => removeItem(item.itemId)}
                         className="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-500 hover:text-red-700 rounded flex items-center justify-center transition-colors"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -273,7 +260,7 @@ const CartPage = () => {
 
                 <div className="space-y-4 mb-6">
                   {cartItems.map((item) => (
-                    <div key={getItemId(item)} className="flex justify-between items-center">
+                    <div key={item.itemId} className="flex justify-between items-center">
                       <span className="text-gray-800 font-medium">{item.name} x{item.quantity}</span>
                       <span className="font-bold text-gray-900">₱ {(item.price * item.quantity).toFixed(2)}</span>
                     </div>
