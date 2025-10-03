@@ -154,8 +154,8 @@ const WelcomeLogin = () => {
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div
           className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${isVisible.hero
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
             }`}
           data-section="hero"
         >
@@ -174,8 +174,8 @@ const WelcomeLogin = () => {
 
         <div
           className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${isVisible.form
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
             }`}
           data-section="form"
           style={{ transitionDelay: "300ms" }}

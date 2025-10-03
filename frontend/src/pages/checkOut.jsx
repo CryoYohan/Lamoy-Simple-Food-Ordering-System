@@ -127,8 +127,8 @@ const CheckOutPage = () => {
       >
         <div
           className={`transition-all duration-1000 ease-out ${isVisible.hero
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-8"
             }`}
           data-section="hero"
         >
@@ -159,8 +159,8 @@ const CheckOutPage = () => {
           {/* Breadcrumb */}
           <div
             className={`flex items-center justify-between mb-8 transition-all duration-800 ease-out ${isVisible.content
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
               }`}
             data-section="content"
           >
@@ -194,8 +194,8 @@ const CheckOutPage = () => {
             <div className="lg:col-span-2">
               <div
                 className={`bg-white rounded-xl p-6 border border-gray-200 transition-all duration-1000 ease-out ${isVisible.cartItems
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-12"
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-12"
                   }`}
                 data-section="cartItems"
               >
@@ -211,8 +211,8 @@ const CheckOutPage = () => {
                     <div
                       key={item.id}
                       className={`flex items-center p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out ${isVisible.cartItems
-                          ? "opacity-100 translate-y-0"
-                          : "opacity-0 translate-y-8"
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-8"
                         }`}
                       style={{
                         transitionDelay: isVisible.cartItems
@@ -261,8 +261,8 @@ const CheckOutPage = () => {
               {/* User Information */}
               <div
                 className={`bg-white rounded-xl p-6 border border-gray-200 transition-all duration-1000 ease-out ${isVisible.userInfo
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-12"
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-12"
                   }`}
                 data-section="userInfo"
               >
@@ -317,8 +317,8 @@ const CheckOutPage = () => {
               {/* Payment Summary */}
               <div
                 className={`bg-white rounded-xl shadow-sm p-6 transition-all duration-1000 ease-out ${isVisible.summary
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-12"
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-12"
                   }`}
                 data-section="summary"
               >
