@@ -29,7 +29,7 @@ namespace backend.Controllers
             var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
             if (user != null && BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                var token = _jwtHelper.GenerateToken(request.Email, user.Role.ToString(),user.UserName);
+                var token = _jwtHelper.GenerateToken(user.UserId.ToString(),request.Email, user.Role.ToString(),user.UserName);
                 return Ok(new { Token = token });
             }
             return Unauthorized("Invalid Email or password.");

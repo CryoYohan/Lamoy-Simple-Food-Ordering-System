@@ -17,17 +17,49 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // fetch user details from API
+  const fetchUserDetails = async (userId, jwtToken) => {
+    try {
+      const res = await fetch(`http://localhost:5143/api/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch user details");
+
+      const data = await res.json();
+
+      setUser((prevUser) => ({
+        ...prevUser,
+        phoneNumber: data.phoneNumber || null,
+        address: data.address || null,
+      }));
+    } catch (err) {
+      console.error("Error fetching user details:", err);
+    }
+  };
+
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     if (savedToken) {
       setToken(savedToken);
       try {
         const decoded = jwtDecode(savedToken);
-        setUser({
-          email: decoded?.unique_name || decoded?.name || null,
+
+        const baseUser = {
+          userId: decoded?.userId, // <-- using userId
+          email:
+            decoded?.email || decoded?.unique_name || decoded?.name || null,
           role: decoded?.role || null,
           name: decoded?.name,
-        });
+        };
+
+        setUser(baseUser);
+
+        if (baseUser.userId) {
+          fetchUserDetails(baseUser.userId, savedToken);
+        }
       } catch (err) {
         console.error("Invalid token:", err);
         localStorage.removeItem("token");
@@ -42,11 +74,19 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const decoded = jwtDecode(jwtToken);
-      setUser({
-        email: decoded?.unique_name || decoded?.name || null,
+
+      const baseUser = {
+        userId: decoded?.userId, // <-- using userId
+        email: decoded?.email || decoded?.unique_name || decoded?.name || null,
         role: decoded?.role || null,
         name: decoded?.name,
-      });
+      };
+
+      setUser(baseUser);
+
+      if (baseUser.userId) {
+        fetchUserDetails(baseUser.userId, jwtToken);
+      }
     } catch (err) {
       console.error("Failed to decode token:", err);
     }
