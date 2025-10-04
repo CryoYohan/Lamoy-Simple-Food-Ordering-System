@@ -154,7 +154,7 @@ const CheckOutPage = () => {
       </div>
 
       {/* Checkout Content Section */}
-      <div className="bg-gray-50 pt-20 pb-8">
+      <div className="bg-gray-50 pt-15 pb-8">
         <div className="max-w-6xl mx-auto px-4">
           {/* Breadcrumb */}
           <div

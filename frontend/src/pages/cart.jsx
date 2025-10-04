@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DynamicNavigation from '../components/dynamicNavbar';
 import bgImage from '../assets/MAIN4.png';
-import bowlImage from '../assets/BOWL.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -96,7 +95,7 @@ const CartPage = () => {
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
-    <div className="min-h-screen relative font-sans">
+    <div className="min-h-screen relative font-sans bg-white">
       <div className="absolute w-full z-50">
         <DynamicNavigation />
       </div>
@@ -137,7 +136,7 @@ const CartPage = () => {
       </div>
 
       {/* Cart Content Section */}
-      <div className="bg-gray-50 pt-20 pb-8">
+      <div className="bg-white pt-15 pb-8">
         <div className="max-w-6xl mx-auto px-4">
           {/* Breadcrumb */}
           <div
@@ -171,65 +170,83 @@ const CartPage = () => {
 
                 {/* Cart Items */}
                 <div className="space-y-6">
-                  {cartItems.map((item, index) => (
-                    <div
-                      key={item.itemId}
-                      className={`flex items-center p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out ${isVisible.cartItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                        }`}
-                      style={{
-                        transitionDelay: isVisible.cartItems ? `${200 + (index * 100)}ms` : '0ms'
-                      }}
-                    >
-                      {/* Item Image */}
-                      <div className="w-20 h-20 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0 mr-4">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-contain"
-                        />
-                      </div>
-
-                      {/* Item Details */}
-                      <div className="flex-grow">
-                        <h3 className="font-bold text-lg text-gray-900">{item.name}</h3>
-                        <p className="text-gray-700 text-sm font-medium">{item.description}</p>
-                      </div>
-
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-2 mr-6">
-                        <button
-                          onClick={() => updateQuantity(item.itemId, item.quantity - 1)}
-                          className="w-10 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded flex items-center justify-center transition-colors"
-                        >
-                          <span className="text-gray-700 font-medium text-lg">-</span>
-                        </button>
-                        <span className="min-w-[2rem] text-center font-medium text-gray-900">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.itemId, item.quantity + 1)}
-                          className="w-10 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded flex items-center justify-center transition-colors"
-                        >
-                          <span className="text-gray-700 font-medium text-lg">+</span>
-                        </button>
-                      </div>
-
-                      {/* Price */}
-                      <div className="text-right mr-4">
-                        <div className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-medium text-sm">
-                          ₱ {item.price.toFixed(2)}
-                        </div>
-                      </div>
-
-                      {/* Remove Button */}
-                      <button
-                        onClick={() => removeItem(item.itemId)}
-                        className="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-500 hover:text-red-700 rounded flex items-center justify-center transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                  {cartItems.length === 0 ? (
+                    <div className="text-center py-16">
+                      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2-2m2 2l-2 2M9 21a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z" />
                         </svg>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h3>
+                      <p className="text-gray-600 mb-6">Add some delicious items from our menu to get started!</p>
+                      <button
+                        onClick={() => navigate('/menu')}
+                        className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
+                      >
+                        Browse Menu
                       </button>
                     </div>
-                  ))}
+                  ) : (
+                    cartItems.map((item, index) => (
+                      <div
+                        key={item.itemId}
+                        className={`flex items-center p-6 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out bg-white ${isVisible.cartItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                          }`}
+                        style={{
+                          transitionDelay: isVisible.cartItems ? `${200 + (index * 100)}ms` : '0ms'
+                        }}
+                      >
+                        {/* Item Image */}
+                        <div className="w-20 h-20 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0 mr-6 shadow-sm">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-16 h-16 object-contain"
+                          />
+                        </div>
+
+                        {/* Item Details */}
+                        <div className="flex-grow min-w-0 mr-6">
+                          <h3 className="font-bold text-xl text-gray-900 mb-1 truncate">{item.name}</h3>
+                          <p className="text-gray-600 text-sm leading-relaxed">{item.description}</p>
+                        </div>
+
+                        {/* Quantity Controls */}
+                        <div className="flex items-center space-x-3 mr-6">
+                          <button
+                            onClick={() => updateQuantity(item.itemId, item.quantity - 1)}
+                            className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center transition-colors shadow-sm"
+                          >
+                            <span className="text-gray-700 font-medium text-lg">-</span>
+                          </button>
+                          <span className="min-w-[2.5rem] text-center font-semibold text-gray-900 text-lg">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.itemId, item.quantity + 1)}
+                            className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center transition-colors shadow-sm"
+                          >
+                            <span className="text-gray-700 font-medium text-lg">+</span>
+                          </button>
+                        </div>
+
+                        {/* Price */}
+                        <div className="text-right mr-6 flex-shrink-0">
+                          <div className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-bold text-md">
+                            ₱ {item.price.toFixed(2)}
+                          </div>
+                        </div>
+
+                        {/* Remove Button */}
+                        <button
+                          onClick={() => removeItem(item.itemId)}
+                          className="w-10 h-10 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-lg flex items-center justify-center transition-colors shadow-sm flex-shrink-0"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 {/* Clear Cart Button (Optional) */}
