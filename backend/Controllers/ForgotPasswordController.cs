@@ -59,8 +59,10 @@ namespace backend.Controllers
             if (user == null)
                 return BadRequest("Invalid or expired token.");
 
-            // ⚠️ In production, use a password hasher instead of plain text
-            user.PasswordHash = request.NewPassword;
+            // ✅ Hash the new password using BCrypt
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+            // Clear reset token fields
             user.PasswordResetToken = null;
             user.ResetTokenExpiry = null;
 
@@ -68,6 +70,7 @@ namespace backend.Controllers
 
             return Ok(new { message = "Password reset successful. You can now log in." });
         }
+
     }
 
     public class ForgotPasswordRequest
