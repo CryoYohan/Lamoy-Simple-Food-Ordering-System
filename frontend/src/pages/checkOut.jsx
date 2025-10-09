@@ -193,10 +193,11 @@ const CheckOutPage = () => {
             {/* Shopping Cart */}
             <div className="lg:col-span-2">
               <div
-                className={`bg-white rounded-xl p-6 border border-gray-200 transition-all duration-1000 ease-out ${isVisible.cartItems
+                className={`bg-white rounded-xl p-10 border border-gray-200 transition-all duration-1000 ease-out ${
+                  isVisible.cartItems
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
-                  }`}
+                }`}
                 data-section="cartItems"
               >
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -206,14 +207,15 @@ const CheckOutPage = () => {
                   Cart Items ({cartItems.length})
                 </p>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {cartItems.map((item, index) => (
                     <div
                       key={item.id}
-                      className={`flex items-center p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out ${isVisible.cartItems
+                      className={`flex items-center p-6 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out bg-white ${
+                        isVisible.cartItems
                           ? "opacity-100 translate-y-0"
                           : "opacity-0 translate-y-8"
-                        }`}
+                      }`}
                       style={{
                         transitionDelay: isVisible.cartItems
                           ? `${200 + index * 100}ms`
@@ -221,32 +223,34 @@ const CheckOutPage = () => {
                       }}
                     >
                       {/* Item Image */}
-                      <div className="w-16 h-16 bg-yellow-400 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <div className="w-20 h-20 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0 mr-6 shadow-sm">
                         <img
                           src={item.image || bowlImage}
                           alt={item.name}
-                          className="w-12 h-12 object-contain"
+                          className="w-16 h-16 object-contain"
                         />
                       </div>
 
                       {/* Item Details */}
-                      <div className="flex-grow">
-                        <h3 className="font-bold text-gray-900">{item.name}</h3>
-                        <p className="text-gray-700 text-sm font-medium">
-                          {item.description}
+                      <div className="flex-grow min-w-0 mr-6">
+                        <h3 className="font-bold text-xl text-gray-900 mb-1 truncate">{item.name}</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 overflow-hidden">
+                          {item.description && item.description.length > 80 
+                            ? `${item.description.substring(0, 80)}...` 
+                            : item.description || 'No description available'}
                         </p>
                       </div>
 
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-2 mr-4">
-                        <span className="min-w-[2rem] text-center font-medium text-gray-900">
-                          {item.quantity}
+                      {/* Quantity Display */}
+                      <div className="flex items-center space-x-2 mr-6">
+                        <span className="min-w-[2.5rem] text-center font-semibold text-gray-900 text-lg">
+                          x{item.quantity}
                         </span>
                       </div>
 
                       {/* Price */}
-                      <div className="text-right mr-4">
-                        <div className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-medium text-sm">
+                      <div className="text-right flex-shrink-0">
+                        <div className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-bold text-md">
                           ₱ {item.price.toFixed(2)}
                         </div>
                       </div>

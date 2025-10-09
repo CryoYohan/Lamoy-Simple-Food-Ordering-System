@@ -208,7 +208,11 @@ const CartPage = () => {
                         {/* Item Details */}
                         <div className="flex-grow min-w-0 mr-6">
                           <h3 className="font-bold text-xl text-gray-900 mb-1 truncate">{item.name}</h3>
-                          <p className="text-gray-600 text-sm leading-relaxed">{item.description}</p>
+                          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 overflow-hidden">
+                            {item.description && item.description.length > 80 
+                              ? `${item.description.substring(0, 80)}...` 
+                              : item.description || 'No description available'}
+                          </p>
                         </div>
 
                         {/* Quantity Controls */}

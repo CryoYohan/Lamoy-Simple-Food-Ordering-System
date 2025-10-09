@@ -3,6 +3,7 @@ import DynamicNavigation from "../components/dynamicNavbar";
 import bgImage from "../assets/MAIN4.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 
 const WelcomeLogin = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ const WelcomeLogin = () => {
   });
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   // Intersection Observer for scroll animations
   useEffect(() => {
@@ -51,15 +53,15 @@ const WelcomeLogin = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Client-side validation
+    // Client-side validation - Replace all alert() calls
     if (!email.trim()) {
-      alert("Email Required: Please enter your email address to sign in.");
+      showError("Email Required: Please enter your email address to sign in.");
       setIsLoading(false);
       return;
     }
 
     if (!password.trim()) {
-      alert("Password Required: Please enter your password to sign in.");
+      showError("Password Required: Please enter your password to sign in.");
       setIsLoading(false);
       return;
     }
@@ -67,9 +69,7 @@ const WelcomeLogin = () => {
     // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      alert(
-        "Invalid Email Format: Please enter a valid email address (example: user@example.com)."
-      );
+      showError("Invalid Email Format: Please enter a valid email address (example: user@example.com).");
       setIsLoading(false);
       return;
     }
@@ -89,8 +89,8 @@ const WelcomeLogin = () => {
       if (response.ok) {
         const data = await response.json();
 
-        // Show success alert
-        alert("Welcome Back! Successfully signed in! Welcome back to Lamoy.");
+        // Replace alert with showSuccess
+        showSuccess("Successfully signed in! Welcome back to Lamoy.");
 
         // Auto-navigate after success message
         setTimeout(() => {
@@ -99,26 +99,20 @@ const WelcomeLogin = () => {
         }, 1000);
       } else {
         const status = response.status;
-        let message =
-          "We encountered an issue while signing you in. Please try again.";
+        let message = "We encountered an issue while signing you in. Please try again.";
 
         if (status === 401 || status === 400) {
-          message =
-            "Invalid Credentials: The email or password you entered is incorrect. Please double-check your credentials and try again.";
+          message = "Invalid Credentials: The email or password you entered is incorrect.";
         } else if (status === 404) {
-          message =
-            "Account Not Found: No account found with this email address. Please check your email or create a new account.";
+          message = "Account Not Found: No account found with this email address.";
         } else if (status >= 500) {
-          message =
-            "Server Error: Our servers are experiencing issues. Please try again in a few minutes.";
+          message = "Server Error: Our servers are experiencing issues. Please try again in a few minutes.";
         }
 
-        alert(message);
+        showError(message);
       }
     } catch (err) {
-      alert(
-        "Connection Error: We're having trouble connecting to our servers. Please check your internet connection and try again."
-      );
+      showError("Connection Error: We're having trouble connecting to our servers. Please check your internet connection and try again.");
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
