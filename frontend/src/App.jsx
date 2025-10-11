@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // Add Navigate here
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/Toast';
@@ -12,9 +12,17 @@ import CheckOutPage from './pages/checkOut.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 import CartPage from './pages/cart.jsx';
 import OrdersPage from './pages/orders';
-import ViewOrderPage from './pages/viewOrder.jsx';
+import ViewOrderPage from './pages/ViewOrder.jsx';
 import TrackOrderPage from './pages/trackOrder.jsx';
 import ProfilePage from './pages/profile.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminOrders from './pages/admin/orders/AdminOrders';
+import AdminViewOrder from './pages/admin/orders/AdminViewOrder';
+import AdminMenu from './pages/admin/menu/AdminMenu';
+import AdminCreateMenu from './pages/admin/menu/AdminCreateMenu';
+import AdminEditMenu from './pages/admin/menu/AdminEditMenu';
+import AdminViewMenu from './pages/admin/menu/AdminViewMenu';
+
 
 const App = () => {
   return (
@@ -23,6 +31,8 @@ const App = () => {
         <Router>
           <ToastContainer />
           <Routes>
+
+            {/* User Routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/home" element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
@@ -37,6 +47,20 @@ const App = () => {
             <Route path="/view-order/:orderId" element={<ViewOrderPage />} />
             <Route path="/track-order/:orderId" element={<TrackOrderPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/orders/view/:orderId" element={<AdminViewOrder />} />
+            <Route path="/admin/menu" element={<AdminMenu />} />
+            <Route path="/admin/menu/create" element={<AdminCreateMenu />} />
+            <Route path="/admin/menu/edit/:itemId" element={<AdminEditMenu />} />
+            <Route path="/admin/menu/view/:itemId" element={<AdminViewMenu />} />
+
+            {/* Redirect unknown routes to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+
           </Routes>
         </Router>
       </AuthProvider>
