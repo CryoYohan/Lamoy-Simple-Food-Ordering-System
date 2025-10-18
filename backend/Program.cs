@@ -1,10 +1,13 @@
 using backend.Data;
-using backend.Services; // 👈 add this
+using backend.Services; 
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 using System.Text;
+
 // Load secrets from .env file
 Env.Load();
 
@@ -37,7 +40,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-//JWT Token Helper
+// JWT Token Helper
 builder.Services.AddScoped<JwtTokenHelper>();
 
 // Application DB Context
@@ -57,7 +60,6 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-
 // ✅ Register EmailService
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddAuthorization();
@@ -70,16 +72,25 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-//Swagger
+// Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
-//Use Auth
+// Use Auth
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Use CORS before other middleware that handles requests
 app.UseCors("AllowReactApp");
+
+// ✅ Serve static files (for uploads)
+app.UseStaticFiles(); // this enables serving from wwwroot by default
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.WebRootPath, "uploads")),
+    RequestPath = "/uploads"
+});
 
 app.UseHttpsRedirection();
 app.MapControllers();

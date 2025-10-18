@@ -8,82 +8,62 @@ import { useAuth } from '../../../context/AuthContext';
 const AdminMenu = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  
-  // Static menu data (in real app, this would come from API)
-  const [menuItems, setMenuItems] = useState([
-    {
-      id: 1,
-      itemId: 'ITEM-001',
-      name: 'Chicken Adobo',
-      description: 'Traditional Filipino dish with tender chicken braised in soy sauce, vinegar, and garlic. Served with steamed rice.',
-      price: 150.00,
-      category: 'Main Course',
-      image: bowlImage,
-      isActive: true,
-      createdDate: '2024-01-15T10:30:00Z',
-      updatedDate: '2024-01-15T10:30:00Z'
-    },
-    {
-      id: 2,
-      itemId: 'ITEM-002',
-      name: 'Pancit Canton',
-      description: 'Stir-fried noodles with vegetables, meat, and savory sauce. A Filipino favorite.',
-      price: 120.00,
-      category: 'Main Course',
-      image: bowlImage,
-      isActive: true,
-      createdDate: '2024-01-16T09:15:00Z',
-      updatedDate: '2024-01-16T09:15:00Z'
-    },
-    {
-      id: 3,
-      itemId: 'ITEM-003',
-      name: 'Halo-Halo',
-      description: 'Traditional Filipino dessert with mixed ingredients, shaved ice, and ube ice cream.',
-      price: 90.00,
-      category: 'Dessert',
-      image: bowlImage,
-      isActive: true,
-      createdDate: '2024-01-17T14:20:00Z',
-      updatedDate: '2024-01-17T14:20:00Z'
-    },
-    {
-      id: 4,
-      itemId: 'ITEM-004',
-      name: 'Fresh Buko Juice',
-      description: 'Refreshing coconut water served cold with coconut meat.',
-      price: 65.00,
-      category: 'Beverages',
-      image: bowlImage,
-      isActive: false,
-      createdDate: '2024-01-18T11:45:00Z',
-      updatedDate: '2024-01-18T11:45:00Z'
-    },
-    {
-      id: 5,
-      itemId: 'ITEM-005',
-      name: 'Bicol Express',
-      description: 'Spicy pork dish cooked in coconut milk with chilies and shrimp paste.',
-      price: 180.00,
-      category: 'Main Course',
-      image: bowlImage,
-      isActive: true,
-      createdDate: '2024-01-19T16:30:00Z',
-      updatedDate: '2024-01-19T16:30:00Z'
-    },
-    {
-      id: 6,
-      itemId: 'ITEM-006',
-      name: 'Leche Flan',
-      description: 'Silky smooth caramel custard dessert, a Filipino classic.',
-      price: 85.00,
-      category: 'Dessert',
-      image: bowlImage,
-      isActive: true,
-      createdDate: '2024-01-20T13:10:00Z',
-      updatedDate: '2024-01-20T13:10:00Z'
-    }
-  ]);
+
+  // Instead of static data
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+
+
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        const response = await fetch('http://localhost:5143/api/menu', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Transform backend data to match UI structure
+        const formattedData = data.map((item, index) => ({
+          id: index + 1,
+          itemId: item.itemId || `ITEM-${index + 1}`,
+          name: item.name,
+          description: item.description,
+          price: parseFloat(item.price),
+          category: item.categoryId === 1
+            ? 'Main Course'
+            : item.categoryId === 2
+              ? 'Dessert'
+              : item.categoryId === 3
+                ? 'Beverages'
+                : 'Other',
+          image: item.imageUrl || bowlImage,
+          isActive: item.isAvailable,
+          createdDate: new Date().toISOString(),
+          updatedDate: new Date().toISOString(),
+        }));
+
+        setMenuItems(formattedData);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching menu items:', err);
+        setError('Failed to load menu items.');
+        setLoading(false);
+      }
+    };
+
+    fetchMenuItems();
+  }, []);
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -103,12 +83,12 @@ const AdminMenu = () => {
 
   // Filter menu items
   const filteredItems = menuItems.filter(item => {
-    const matchesSearch = !searchTerm.trim() || 
+    const matchesSearch = !searchTerm.trim() ||
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
-    const matchesStatus = filterStatus === 'all' || 
+    const matchesStatus = filterStatus === 'all' ||
       (filterStatus === 'active' && item.isActive) ||
       (filterStatus === 'inactive' && !item.isActive);
 
@@ -126,38 +106,29 @@ const AdminMenu = () => {
     setCurrentPage(1);
   }, [searchTerm, filterCategory, filterStatus]);
 
-  // Intersection Observer for scroll animations
   useEffect(() => {
+    if (loading) return; // ⬅️ Don't run observer until menu items are fetched
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setIsVisible(prev => ({
+            setIsVisible((prev) => ({
               ...prev,
-              [entry.target.dataset.section]: true
+              [entry.target.dataset.section]: true,
             }));
           }
         });
       },
-      { 
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-      }
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
     );
 
     const sections = document.querySelectorAll('[data-section]');
-    sections.forEach(section => observer.observe(section));
+    sections.forEach((section) => observer.observe(section));
 
     return () => observer.disconnect();
-  }, []);
+  }, [loading]); // ⬅️ depends on loading
 
-  // Set hero section visible immediately on mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(prev => ({ ...prev, hero: true }));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -180,6 +151,13 @@ const AdminMenu = () => {
         return 'bg-gray-100 text-gray-600';
     }
   };
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "";
+    // Prevent double 'uploads/' in the URL
+    if (imagePath.startsWith("http")) return imagePath; // For external URLs
+    if (imagePath.startsWith("uploads/")) return `http://localhost:5143/${imagePath}`;
+    return `http://localhost:5143/uploads/${imagePath}`;
+  };
 
   const handleView = (itemId) => {
     navigate(`/admin/menu/view/${itemId}`);
@@ -197,9 +175,9 @@ const AdminMenu = () => {
   };
 
   const handleToggleStatus = (itemId) => {
-    setMenuItems(prevItems => 
-      prevItems.map(item => 
-        item.id === itemId 
+    setMenuItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId
           ? { ...item, isActive: !item.isActive, updatedDate: new Date().toISOString() }
           : item
       )
@@ -211,20 +189,19 @@ const AdminMenu = () => {
       <div className="absolute w-full z-50">
         <AdminNavigation />
       </div>
-      
+
       {/* Hero Section */}
-      <div 
+      <div
         className="relative top-0 left-0 w-full h-96 bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center"
-        style={{ 
+        style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center'
         }}
       >
-        <div 
-          className={`transition-all duration-1000 ease-out ${
-            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
+        <div
+          className={`transition-all duration-1000 ease-out ${isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
           data-section="hero"
         >
           <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
@@ -238,7 +215,7 @@ const AdminMenu = () => {
         {/* Create New Item button */}
         <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-1/2 z-30">
           <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-            <button 
+            <button
               onClick={() => navigate('/admin/menu/create')}
               className="bg-white px-8 py-3 rounded-full font-semibold text-lg text-yellow-500 hover:bg-gray-50 transition-colors shadow-lg flex items-center gap-2"
             >
@@ -268,7 +245,7 @@ const AdminMenu = () => {
                     {filterStatus !== 'all' && ` (${filterStatus} only)`}
                   </p>
                 </div>
-                
+
                 {/* Search Bar and Filters - All in one row */}
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                   {/* Search Bar */}
@@ -335,10 +312,9 @@ const AdminMenu = () => {
 
           {/* Menu Items Grid */}
           {currentItems.length > 0 ? (
-            <div 
-              className={`transition-all duration-1000 ease-out ${
-                isVisible.menuItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-              }`}
+            <div
+              className={`transition-all duration-1000 ease-out ${isVisible.menuItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+                }`}
               data-section="menuItems"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
@@ -353,31 +329,30 @@ const AdminMenu = () => {
                     {/* Item Image with Overlaid Labels */}
                     <div className="relative h-48 bg-yellow-500 flex items-center justify-center">
                       <img
-                        src={item.image}
+                        src={`http://localhost:5143/${item.image}`}
                         alt={item.name}
                         className="w-32 h-32 object-contain transition-transform duration-300 hover:scale-110"
                       />
-                      
+
                       {/* Item ID - Top Left */}
                       <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1">
                         <span className="text-sm font-medium text-gray-900">#{item.itemId}</span>
                       </div>
-                      
+
                       {/* Status Label - Top Right */}
                       <div className="absolute top-3 right-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          item.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                        }`}>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                          }`}>
                           {item.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </div>
                     </div>
 
-                    
+
 
                     {/* Item Details */}
 
-                    
+
                     <div className="p-6">
 
                       {/* Category Label */}
@@ -386,12 +361,12 @@ const AdminMenu = () => {
                           {item.category}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="text-lg font-bold text-gray-900 line-clamp-1 flex-1 mr-2">{item.name}</h3>
                       </div>
-                      
-                      
+
+
                       <p className="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-2">
                         {item.description}
                       </p>
@@ -417,7 +392,7 @@ const AdminMenu = () => {
                           </svg>
                           View
                         </button>
-                        
+
                         <button
                           onClick={() => handleEdit(item.id)}
                           className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
@@ -430,11 +405,10 @@ const AdminMenu = () => {
 
                         <button
                           onClick={() => handleToggleStatus(item.id)}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
-                            item.isActive 
-                              ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                              : 'bg-green-500 hover:bg-green-600 text-white'
-                          }`}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${item.isActive
+                            ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                            : 'bg-green-500 hover:bg-green-600 text-white'
+                            }`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
@@ -466,8 +440,8 @@ const AdminMenu = () => {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No menu items found</h3>
               <p className="text-gray-700 mb-6 font-medium">
-                {searchTerm || filterCategory !== 'all' || filterStatus !== 'all' 
-                  ? "No items match your current search criteria." 
+                {searchTerm || filterCategory !== 'all' || filterStatus !== 'all'
+                  ? "No items match your current search criteria."
                   : "You haven't created any menu items yet."
                 }
               </p>
@@ -500,45 +474,42 @@ const AdminMenu = () => {
               <div className="text-sm text-gray-800 font-medium">
                 Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredItems.length)} of {filteredItems.length} items
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === 1
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                  }`}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === 1
+                    ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                    }`}
                 >
                   Previous
                 </button>
-                
+
                 {[...Array(totalPages)].map((_, index) => {
                   const pageNumber = index + 1;
                   return (
                     <button
                       key={pageNumber}
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === pageNumber
-                          ? 'bg-yellow-500 text-white'
-                          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                      }`}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNumber
+                        ? 'bg-yellow-500 text-white'
+                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                        }`}
                     >
                       {pageNumber}
                     </button>
                   );
                 })}
-                
+
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === totalPages
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                  }`}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === totalPages
+                    ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                    }`}
                 >
                   Next
                 </button>
