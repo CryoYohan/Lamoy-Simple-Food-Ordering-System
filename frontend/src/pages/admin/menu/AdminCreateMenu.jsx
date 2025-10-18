@@ -8,7 +8,12 @@ import { useAuth } from '../../../context/AuthContext';
 const AdminCreateMenu = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  
+  useEffect(() => {
+    if (!isAuthenticated) navigate('/login');
+    else if (user?.role !== 'Admin') navigate('/');
+  }, [isAuthenticated, user, navigate]);
+
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -44,7 +49,7 @@ const AdminCreateMenu = () => {
           }
         });
       },
-      { 
+      {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
       }
@@ -154,7 +159,7 @@ const AdminCreateMenu = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -164,28 +169,34 @@ const AdminCreateMenu = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 🆕 Actual API call
+      const formDataToSend = new FormData();
+      formDataToSend.append('Name', formData.name);
+      formDataToSend.append('Description', formData.description);
+      formDataToSend.append('Price', formData.price);
+      formDataToSend.append('Category', formData.category);
+      formDataToSend.append('IsActive', formData.isActive);
+      if (formData.image) formDataToSend.append('Image', formData.image);
 
-      // In real app, you would upload the image and create the menu item via API
-      const newMenuItem = {
-        id: Date.now(),
-        itemId: `ITEM-${Date.now().toString().slice(-6)}`,
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        category: formData.category,
-        image: imagePreview || bowlImage,
-        isActive: formData.isActive,
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString()
-      };
+      const response = await fetch('http://localhost:5143/api/admin/menu', {
+        method: 'POST',
+        body: formDataToSend,
+        // If you’re using JWT:
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || ''}` // 🆕
+        }
+      });
 
-      console.log('Created menu item:', newMenuItem);
-      
-      // Redirect back to menu list
-      navigate('/admin/menu', { 
-        state: { 
+      if (!response.ok) {
+        const errMsg = await response.text();
+        throw new Error(errMsg || 'Failed to create menu item.');
+      }
+
+      const createdItem = await response.json();
+      console.log('Created menu item:', createdItem);
+
+      navigate('/admin/menu', {
+        state: {
           message: `Menu item "${formData.name}" created successfully!`,
           type: 'success'
         }
@@ -193,7 +204,7 @@ const AdminCreateMenu = () => {
 
     } catch (error) {
       console.error('Error creating menu item:', error);
-      setErrors({ submit: 'Failed to create menu item. Please try again.' });
+      setErrors({ submit: error.message || 'Failed to create menu item. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -204,20 +215,19 @@ const AdminCreateMenu = () => {
       <div className="absolute w-full z-50">
         <AdminNavigation />
       </div>
-      
+
       {/* Hero Section */}
-      <div 
+      <div
         className="relative top-0 left-0 w-full h-96 bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center"
-        style={{ 
+        style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center'
         }}
       >
-        <div 
-          className={`transition-all duration-1000 ease-out ${
-            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
+        <div
+          className={`transition-all duration-1000 ease-out ${isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
           data-section="hero"
         >
           <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
@@ -231,7 +241,7 @@ const AdminCreateMenu = () => {
         {/* Back to Menu button */}
         <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-1/2 z-30">
           <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-            <button 
+            <button
               onClick={() => navigate('/admin/menu')}
               className="bg-white px-8 py-3 rounded-full font-semibold text-lg text-yellow-500 hover:bg-gray-50 transition-colors shadow-lg"
             >
@@ -245,10 +255,9 @@ const AdminCreateMenu = () => {
       <div className="bg-gray-50 pt-20 pb-8">
         <div className="max-w-4xl mx-auto px-4">
           {/* Breadcrumb */}
-          <div 
-            className={`flex items-center justify-between mb-8 transition-all duration-800 ease-out ${
-              isVisible.content ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
+          <div
+            className={`flex items-center justify-between mb-8 transition-all duration-800 ease-out ${isVisible.content ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
             data-section="content"
           >
             <div className="flex items-center space-x-2 text-sm text-gray-900">
@@ -259,10 +268,9 @@ const AdminCreateMenu = () => {
           </div>
 
           {/* Form Section */}
-          <div 
-            className={`bg-white rounded-xl border border-gray-200 p-8 transition-all duration-1000 ease-out ${
-              isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-            }`}
+          <div
+            className={`bg-white rounded-xl border border-gray-200 p-8 transition-all duration-1000 ease-out ${isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+              }`}
             data-section="form"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Menu Item Details</h2>
@@ -279,9 +287,8 @@ const AdminCreateMenu = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`block w-full px-4 py-4 border-1 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 text-gray-800 placeholder-gray-400 bg-white ${
-                    errors.name ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`block w-full px-4 py-4 border-1 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 text-gray-800 placeholder-gray-400 bg-white ${errors.name ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
+                    }`}
                   placeholder="Enter item name (e.g., Chicken Adobo)"
                 />
                 {errors.name && <p className="mt-2 text-sm text-red-600 font-medium">{errors.name}</p>}
@@ -299,13 +306,12 @@ const AdminCreateMenu = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   maxLength={500}
-                  className={`block w-full px-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 resize-none text-gray-800 placeholder-gray-400 bg-white ${
-                    errors.description ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`block w-full px-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 resize-none text-gray-800 placeholder-gray-400 bg-white ${errors.description ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
+                    }`}
                   placeholder="Describe the dish, ingredients, and what makes it special..."
                 />
                 <div className="mt-2 flex justify-between items-center">
-                  {errors.description ? 
+                  {errors.description ?
                     <p className="text-sm text-red-600 font-medium">{errors.description}</p> :
                     <p className="text-sm text-gray-600">Provide a detailed description of the menu item</p>
                   }
@@ -334,9 +340,8 @@ const AdminCreateMenu = () => {
                       min="0"
                       value={formData.price}
                       onChange={handleInputChange}
-                      className={`block w-full pl-10 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 text-gray-800 placeholder-gray-400 bg-white ${
-                        errors.price ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`block w-full pl-10 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 text-gray-800 placeholder-gray-400 bg-white ${errors.price ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
+                        }`}
                       placeholder="0.00"
                     />
                   </div>
@@ -354,9 +359,8 @@ const AdminCreateMenu = () => {
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
-                      className={`block w-full appearance-none px-4 py-4 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 text-gray-800 bg-white cursor-pointer ${
-                        errors.category ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`block w-full appearance-none px-4 py-4 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 focus:outline-none transition-all duration-300 text-gray-800 bg-white cursor-pointer ${errors.category ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     >
                       <option value="" className="text-gray-400">Select a category</option>
                       {categories.map(category => (
@@ -379,15 +383,14 @@ const AdminCreateMenu = () => {
                   Item Image
                 </label>
                 <div className="space-y-4">
-                  <div className={`flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-xl transition-all duration-300 ${
-                    errors.image ? 'border-red-400' : 'border-gray-300 hover:border-yellow-400'
-                  }`}>
+                  <div className={`flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-xl transition-all duration-300 ${errors.image ? 'border-red-400' : 'border-gray-300 hover:border-yellow-400'
+                    }`}>
                     <div className="space-y-2 text-center">
                       {imagePreview ? (
                         <div className="relative inline-block">
-                          <img 
-                            src={imagePreview} 
-                            alt="Preview" 
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
                             className="mx-auto h-40 w-40 object-cover rounded-xl shadow-lg"
                           />
                           <button

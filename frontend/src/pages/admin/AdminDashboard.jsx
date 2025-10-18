@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import AdminNavigation from '../../components/admin/adminNavbar'; 
-import bgImage from '../../assets/MAIN4.png'; 
+import AdminNavigation from '../../components/admin/adminNavbar';
+import bgImage from '../../assets/MAIN4.png';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  
+  useEffect(() => {
+    // Redirect if not authenticated or not an admin
+    if (isAuthenticated === false) {
+      navigate('/login'); // not logged in
+    } else if (isAuthenticated && user?.role !== 'Admin') {
+      navigate('/home'); // logged in but not admin
+    }
+  }, [isAuthenticated, user, navigate]);
+
+
   // Animation state
   const [isVisible, setIsVisible] = useState({
     hero: false,
@@ -132,8 +141,8 @@ const AdminDashboard = () => {
   // Set hero section visible immediately
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsVisible(prev => ({ 
-        ...prev, 
+      setIsVisible(prev => ({
+        ...prev,
         hero: true,
         stats: true,
         charts: true,
@@ -152,7 +161,7 @@ const AdminDashboard = () => {
   // }, [isAuthenticated, user, navigate]);
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'complete':
         return 'bg-green-100 text-green-600';
       case 'preparing':
@@ -167,7 +176,7 @@ const AdminDashboard = () => {
   };
 
   const getActivityIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'order':
         return (
           <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
@@ -202,18 +211,17 @@ const AdminDashboard = () => {
       </div>
 
       {/* Hero Section */}
-      <div 
+      <div
         className="relative top-0 left-0 w-full h-96 bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center"
-        style={{ 
+        style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center'
         }}
       >
-        <div 
-          className={`transition-all duration-1000 ease-out ${
-            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
+        <div
+          className={`transition-all duration-1000 ease-out ${isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
           data-section="hero"
         >
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold mb-4 sm:mb-6">
@@ -228,9 +236,8 @@ const AdminDashboard = () => {
       {/* Stats Cards Section */}
       <div className="relative -mt-20 mb-12 px-4 sm:px-6 lg:px-8 z-40">
         <div
-          className={`max-w-[1400px] mx-auto transition-all duration-1000 ease-out ${
-            isVisible.stats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
+          className={`max-w-[1400px] mx-auto transition-all duration-1000 ease-out ${isVisible.stats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
           data-section="stats"
         >
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -313,10 +320,9 @@ const AdminDashboard = () => {
       <div className="bg-white py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
           {/* Charts Section */}
-          <div 
-            className={`grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 mb-10 transition-all duration-1000 ease-out ${
-              isVisible.charts ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
+          <div
+            className={`grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 mb-10 transition-all duration-1000 ease-out ${isVisible.charts ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
             data-section="charts"
           >
             {/* Sales Chart - Larger and more prominent */}
@@ -326,7 +332,7 @@ const AdminDashboard = () => {
                 {/* Enhanced bar chart with static data */}
                 {salesData.map((data, index) => (
                   <div key={index} className="flex flex-col items-center flex-1 group">
-                    <div 
+                    <div
                       className="bg-yellow-400 rounded-t-lg w-full transition-all duration-1000 hover:bg-yellow-500 cursor-pointer relative"
                       style={{ height: `${data.percentage}%` }}
                       title={`₱${data.sales.toLocaleString()}`}
@@ -345,7 +351,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Sales summary */}
               <div className="mt-6 grid grid-cols-3 gap-4 text-center">
                 <div>
@@ -377,7 +383,7 @@ const AdminDashboard = () => {
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className="bg-green-400 h-3 rounded-full" style={{ width: '68%' }}></div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-6 h-6 bg-blue-400 rounded-lg"></div>
@@ -388,7 +394,7 @@ const AdminDashboard = () => {
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className="bg-blue-400 h-3 rounded-full" style={{ width: '22%' }}></div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-6 h-6 bg-yellow-400 rounded-lg"></div>
@@ -399,7 +405,7 @@ const AdminDashboard = () => {
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className="bg-yellow-400 h-3 rounded-full" style={{ width: '8%' }}></div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-6 h-6 bg-red-400 rounded-lg"></div>
@@ -417,7 +423,7 @@ const AdminDashboard = () => {
           {/* Recent Activity and Orders */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10">
             {/* Recent Activity */}
-            <div 
+            <div
               className="bg-white rounded-2xl p-8 border border-gray-200"
               data-section="activity"
             >
@@ -439,13 +445,13 @@ const AdminDashboard = () => {
             </div>
 
             {/* Recent Orders - Enhanced design */}
-            <div 
+            <div
               className="bg-white rounded-2xl p-8 border border-gray-200 opacity-100 translate-y-0"
               data-section="orders"
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold text-gray-900">Recent Orders</h3>
-                <button 
+                <button
                   onClick={() => navigate('/admin/orders')}
                   className="text-yellow-600 hover:text-yellow-700 font-semibold text-base transition-colors"
                 >
