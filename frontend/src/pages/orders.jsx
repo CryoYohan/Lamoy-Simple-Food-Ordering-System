@@ -4,80 +4,113 @@ import bgImage from '../assets/MAIN4.png';
 import bowlImage from '../assets/BOWL.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+
+// Configure axios base URL
+axios.defaults.baseURL = 'http://localhost:5143';
 
 const OrdersPage = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   
-  // Static order data (in real app, this would come from API)
-  const [orders] = useState([
-    {
-      id: 1,
-      name: 'Pancit',
-      description: 'Test description',
-      price: 80.00,
-      quantity: 1,
-      image: bowlImage,
-      status: 'complete',
-      orderDate: '2024-01-15',
-      orderId: 'ORD-001'
-    },
-    {
-      id: 2,
-      name: 'Chicken Adobo',
-      description: 'The Philippines\' national dish! Tender chicken braised in soy sauce, vinegar, and garlic. Served with steamed rice.',
-      price: 120.00,
-      quantity: 2,
-      image: bowlImage,
-      status: 'preparing',
-      orderDate: '2024-01-16',
-      orderId: 'ORD-002'
-    },
-    {
-      id: 3,
-      name: 'Pancit',
-      description: 'Test description',
-      price: 80.00,
-      quantity: 1,
-      image: bowlImage,
-      status: 'pending',
-      orderDate: '2024-01-17',
-      orderId: 'ORD-003'
-    },
-    {
-      id: 4,
-      name: 'Lumpia',
-      description: 'Fresh spring rolls with vegetables',
-      price: 60.00,
-      quantity: 3,
-      image: bowlImage,
-      status: 'complete',
-      orderDate: '2024-01-18',
-      orderId: 'ORD-004'
-    },
-    {
-      id: 5,
-      name: 'Lechon Kawali',
-      description: 'Crispy pork belly served with rice',
-      price: 150.00,
-      quantity: 1,
-      image: bowlImage,
-      status: 'preparing',
-      orderDate: '2024-01-19',
-      orderId: 'ORD-005'
-    },
-    {
-      id: 6,
-      name: 'Halo-Halo',
-      description: 'Traditional Filipino dessert with mixed ingredients',
-      price: 90.00,
-      quantity: 2,
-      image: bowlImage,
-      status: 'pending',
-      orderDate: '2024-01-20',
-      orderId: 'ORD-006'
+  // Only redirect if we've finished loading auth state and user is not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login');
     }
-  ]);
+  }, [isLoading, isAuthenticated, navigate]);
+  
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('No authentication token found');
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        // Get user ID from token if not available in auth context
+        let userId = user?.userId;
+        if (!userId && token) {
+          try {
+            const decoded = jwtDecode(token);
+            userId = decoded.userId || decoded.nameid;
+            console.log('Using ID from token:', userId);
+          } catch (err) {
+            console.error('Error decoding token:', err);
+            setError('Could not authenticate user');
+            setLoading(false);
+            return;
+          }
+        }
+
+        if (!userId) {
+          setError('Could not determine user ID');
+          setLoading(false);
+          return;
+        }
+
+        console.log('Fetching orders for user:', userId);
+        const response = await axios.get(`/api/orders/user/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        // Map the API response to match our UI structure
+        console.log('API Response:', response.data);
+        
+        const mappedOrders = response.data.map(order => {
+          console.log('Processing order:', order);
+          return {
+            id: order.orderId,
+            orderId: order.orderId.toString(),
+            name: order.orderItems[0]?.itemName || 'Unknown Item',
+            description: 'Order #' + order.orderId,
+            price: order.totalPrice,
+            quantity: order.orderItems.reduce((sum, item) => sum + item.quantity, 0),
+            image: bowlImage, // Using default image for now
+            status: getStatusString(order.status),
+            orderDate: new Date(order.orderDate).toISOString().split('T')[0]
+          };
+        });
+        
+        console.log('Mapped orders:', mappedOrders);
+        setOrders(mappedOrders);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching orders:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only fetch orders once we're sure about authentication state
+    if (!isLoading) {
+      fetchOrders();
+    }
+  }, [isLoading, user?.userId]);
+
+  // Convert numeric status to string
+  const getStatusString = (status) => {
+    switch (status) {
+      case 1: return 'Pending';
+      case 2: return 'Preparing';
+      case 3: return 'Ready';
+      case 4: return 'Delivered';
+      case 5: return 'Cancelled';
+      default: return 'Unknown';
+    }
+  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -105,13 +138,15 @@ const OrdersPage = () => {
   // Get status color
   const getStatusColor = (status) => {
     switch(status) {
-      case 'complete':
-        return 'bg-green-100 text-green-600';
-      case 'preparing':
-        return 'bg-blue-100 text-blue-600';
-      case 'pending':
+      case 'Pending':
+        return 'bg-gray-100 text-gray-600';
+      case 'Preparing':
         return 'bg-yellow-100 text-yellow-600';
-      case 'cancelled':
+      case 'Ready':
+        return 'bg-orange-100 text-orange-600';
+      case 'Delivered':
+        return 'bg-green-100 text-green-600';
+      case 'Cancelled':
         return 'bg-red-100 text-red-600';
       default:
         return 'bg-gray-100 text-gray-600';
@@ -155,10 +190,36 @@ const OrdersPage = () => {
     // Implement track order logic
   };
 
-  const handleCancelOrder = (orderId) => {
+  const handleCancelOrder = async (orderId) => {
     if (window.confirm('Are you sure you want to cancel this order?')) {
-      console.log('Cancel order:', orderId);
-      // Implement cancel order logic
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        // Send cancel request
+        await axios.post(`/api/orders/${orderId}/cancel`, null, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        // Update the order status in the current state
+        setOrders(orders.map(order => {
+          if (order.orderId === orderId.toString()) {
+            return { ...order, status: 'Cancelled' };
+          }
+          return order;
+        }));
+
+        setError(null);
+      } catch (err) {
+        console.error('Error cancelling order:', err);
+        const message = err.response?.data?.message || 'Failed to cancel order. Please try again.';
+        setError(message);
+        setTimeout(() => setError(null), 5000);
+      }
     }
   };
 
@@ -344,7 +405,34 @@ const OrdersPage = () => {
             }`}
             data-section="ordersList"
           >
-            {currentOrders.length > 0 ? (
+            {/* Loading State */}
+            {loading ? (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-yellow-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading orders...</h3>
+              </div>
+            ) : error ? (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Error loading orders</h3>
+                <p className="text-gray-600 mb-6">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-full font-semibold transition-colors duration-300"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : currentOrders.length > 0 ? (
               currentOrders.map((order, index) => (
                 <div 
                   key={order.id} 

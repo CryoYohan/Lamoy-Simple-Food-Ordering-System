@@ -3,14 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import DynamicNavigation from '../components/dynamicNavbar';
 import bowlImage from '../assets/BOWL.png';
 import bgImage from '../assets/MAIN4.png';
+import logoImage from '../assets/LOGO1.png';
 import axios from 'axios'
+import { useToast } from '../context/ToastContext';
 
 const Menu = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
   const [categories, setCategories] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All Items');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isVisible, setIsVisible] = useState({
     hero: false,
     categories: false,
@@ -22,6 +27,9 @@ const Menu = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
         const [catRes, itemsRes] = await Promise.all([
           axios.get('http://localhost:5143/api/menu/categories'),
           axios.get('http://localhost:5143/api/menu')
@@ -34,19 +42,30 @@ const Menu = () => {
         const categoriesData = [allItemsCategory, ...catRes.data];
 
         setCategories(categoriesData);
-        setMenuItems(itemsRes.data);
+        
+        // Ensure price is properly formatted
+        const formattedItems = itemsRes.data.map(item => ({
+          ...item,
+          price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0
+        }));
+        
+        setMenuItems(formattedItems);
 
         // Debug: Log category IDs and menu item category IDs
         console.log('Categories with IDs:', categoriesData.map(cat => ({ name: cat.name, id: cat.id, categoryId: cat.categoryId })));
-        console.log('Menu items with category IDs:', itemsRes.data.map(item => ({ name: item.name, categoryId: item.categoryId })));
+        console.log('Menu items with category IDs:', formattedItems.map(item => ({ name: item.name, categoryId: item.categoryId, price: item.price })));
 
       } catch (err) {
         console.error('Error fetching data:', err);
+        setError('Failed to load menu data. Please refresh the page.');
+        showError('Failed to load menu data. Please refresh the page.');
+      } finally {
+        setIsLoading(false);
       }
     }
 
     fetchData();
-  }, [])
+  }, [showError])
 
   // Intersection Observer for scroll animations
   useEffect(() => {
@@ -100,9 +119,14 @@ const Menu = () => {
 
   // FIXED: Filter menu items based on category and search
   const filteredItems = menuItems.filter(item => {
-    // If "All Items" is chosen, show all items
+    // First apply search filter
+    const matchesSearch = !searchTerm.trim() || 
+      item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // If "All Items" is chosen, show all items that match search
     if (selectedCategory === 'All Items') {
-      return true;
+      return matchesSearch;
     }
 
     // Find the selected category from categories array
@@ -113,28 +137,21 @@ const Menu = () => {
       return false;
     }
 
-    // Debug logging
-    console.log('Selected Category:', selectedCat);
-    console.log('Item:', item.name, 'Category ID:', item.categoryId);
-
     // Check if item's categoryId matches the selected category's id or categoryId
     const matchesCategory =
       item.categoryId === selectedCat.id ||
       item.categoryId === selectedCat.categoryId;
-
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    console.log('Matches Category:', matchesCategory, 'Matches Search:', matchesSearch);
 
     return matchesCategory && matchesSearch;
   });
 
   // Debug: Log filtered items whenever dependencies change
   useEffect(() => {
-    console.log('Filtered Items:', filteredItems.map(item => item.name));
-  }, [filteredItems]);
+    console.log('Current search term:', searchTerm);
+    console.log('Selected category:', selectedCategory);
+    console.log('Total menu items:', menuItems.length);
+    console.log('Filtered Items:', filteredItems.length, filteredItems.map(item => ({ name: item.name, categoryId: item.categoryId })));
+  }, [filteredItems, searchTerm, selectedCategory, menuItems.length]);
 
   return (
     <div className="font-sans bg-white min-h-screen">
@@ -271,19 +288,51 @@ const Menu = () => {
           </div>
 
           {/* Menu Items Grid */}
-          {filteredItems.length > 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {[...Array(6)].map((_, index) => (
+                <div key={index} className="bg-white rounded-2xl border border-gray-200 overflow-hidden animate-pulse">
+                  <div className="h-48 sm:h-56 bg-gray-300"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-gray-300 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-300 rounded mb-4"></div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-8 w-20 bg-gray-300 rounded-full"></div>
+                      <div className="h-8 w-24 bg-gray-300 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <div className="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Menu</h3>
+              <p className="text-gray-600 mb-6">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-full font-semibold transition-colors duration-300"
+              >
+                Refresh Page
+              </button>
+            </div>
+          ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {filteredItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className={`bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:scale-105 ${isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  className={`bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:scale-105 flex flex-col h-full ${isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                     }`}
                   style={{
                     transitionDelay: `${400 + (index * 100)}ms`
                   }}
                 >
                   {/* Item Image */}
-                  <div className="relative h-48 sm:h-56 bg-yellow-500 flex items-center justify-center overflow-hidden rounded-t-2xl">
+                  <div className="relative h-48 sm:h-56 bg-yellow-500 flex items-center justify-center overflow-hidden rounded-t-2xl flex-shrink-0">
                     <img
                       src={bowlImage}
                       alt={item.name}
@@ -292,21 +341,26 @@ const Menu = () => {
                   </div>
 
                   {/* Item Details */}
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col flex-grow">
                     <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors duration-300">
-                      {item.name}
+                      {item.name || 'Loading...'}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
-                      {item.description}
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-grow">
+                      {item.description || 'Loading description...'}
                     </p>
 
-                    {/* Price and Add Button */}
-                    <div className="flex justify-between items-center">
+                    {/* Price and Add Button - Fixed at bottom */}
+                    <div className="flex justify-between items-center mt-auto">
                       <span className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-bold text-md">
-                        ₱ {item.price.toFixed(2)}
+                        ₱ {(item.price || 0).toFixed(2)}
                       </span>
                       <button
                         onClick={() => {
+                          if (!item.price || item.price === 0) {
+                            showError('Price information not available. Please try again.');
+                            return;
+                          }
+                          
                           const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
                           const itemExists = existingCart.find(i => i.itemId === item.itemId);
 
@@ -315,26 +369,22 @@ const Menu = () => {
                             updatedCart = existingCart.map(i =>
                               i.itemId === item.itemId ? { ...i, quantity: i.quantity + 1 } : i
                             );
+                            showSuccess(`${item.name} quantity updated! Total: ${itemExists.quantity + 1}`);
                           } else {
                             updatedCart = [...existingCart, {
                               ...item,
                               quantity: 1,
                               image: bowlImage
                             }];
+                            showSuccess(`${item.name} added to cart! Ready to order.`);
                           }
 
                           localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-                          // 🔥 Dispatch the custom event to notify navbar
                           window.dispatchEvent(new Event("cartUpdated"));
-
-                          // Also update local state if needed
                           setCartCount(updatedCart.reduce((sum, item) => sum + item.quantity, 0));
-
-                          console.log('Added to cart:', item.name);
-                          console.log('Current cart:', updatedCart);
                         }}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-lg flex items-center gap-2 group"
+                        disabled={!item.price || item.price === 0}
+                        className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-lg flex items-center gap-2 group"
                       >
                         <svg className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -414,7 +464,11 @@ const Menu = () => {
             {/* Logo and Description */}
             <div className="md:col-span-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-6">
-                <h3 className="text-white text-2xl font-bold">Lamoy</h3>
+                <img 
+                  src={logoImage} 
+                  alt="Lamoy Logo"
+                  className="w-20 h-20 sm:w-40 sm:h-40 mr-2 sm:mr-3"
+                />
               </div>
             </div>
 

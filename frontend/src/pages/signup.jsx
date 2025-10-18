@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import DynamicNavigation from "../components/dynamicNavbar";
 import bgImage from "../assets/MAIN4.png";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ const SignUpPage = () => {
     form: false,
   });
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning } = useToast();
 
   // Intersection Observer for scroll animations
   useEffect(() => {
@@ -83,17 +85,15 @@ const SignUpPage = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Client-side validation
+    // Client-side validation - Replace all alert() calls
     if (!formData.userName.trim()) {
-      alert(
-        "Username Required: Please enter a username to create your account."
-      );
+      showError("Username Required: Please enter a username to create your account.");
       setIsLoading(false);
       return;
     }
 
     if (!formData.email.trim()) {
-      alert("Email Required: Please enter your email address.");
+      showError("Email Required: Please enter your email address.");
       setIsLoading(false);
       return;
     }
@@ -101,27 +101,21 @@ const SignUpPage = () => {
     // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      alert(
-        "Invalid Email Format: Please enter a valid email address (example: user@example.com)."
-      );
+      showError("Invalid Email Format: Please enter a valid email address (example: user@example.com).");
       setIsLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert(
-        "Password Mismatch: The passwords you entered do not match. Please make sure both password fields are identical."
-      );
+      showError("Password Mismatch: The passwords you entered do not match. Please make sure both password fields are identical.");
       setIsLoading(false);
       return;
     }
 
     const passwordErrors = validatePassword(formData.password);
     if (passwordErrors.length > 0) {
-      const errorMessage = `Password Requirements Not Met: Your password must include: ${passwordErrors.join(
-        ", "
-      )}. Please create a stronger password for better security.`;
-      alert(errorMessage);
+      const errorMessage = `Password Requirements Not Met: Your password must include: ${passwordErrors.join(", ")}. Please create a stronger password for better security.`;
+      showWarning(errorMessage);
       setIsLoading(false);
       return;
     }
@@ -143,10 +137,8 @@ const SignUpPage = () => {
       });
 
       if (response.ok) {
-        // Show success alert
-        alert(
-          `Account Created! Welcome to Lamoy, ${formData.userName}! You can now sign in.`
-        );
+        // Replace alert with showSuccess
+        showSuccess(`Account Created! Welcome to Lamoy, ${formData.userName}! You can now sign in.`);
 
         // Navigate to login after a short delay
         setTimeout(() => {
@@ -154,17 +146,10 @@ const SignUpPage = () => {
         }, 1000);
       } else {
         const errorText = await response.text();
-        alert(
-          `Account Creation Failed: ${
-            errorText ||
-            "We encountered an issue while creating your account. Please check your information and try again."
-          }`
-        );
+        showError(`Account Creation Failed: ${errorText || "We encountered an issue while creating your account. Please check your information and try again."}`);
       }
     } catch (err) {
-      alert(
-        "Connection Error: We're having trouble connecting to our servers. Please check your internet connection and try again."
-      );
+      showError("Connection Error: We're having trouble connecting to our servers. Please check your internet connection and try again.");
       console.error("Signup error:", err);
     } finally {
       setIsLoading(false);
