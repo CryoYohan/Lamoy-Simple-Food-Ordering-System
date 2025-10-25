@@ -71,16 +71,22 @@ const OrdersPage = () => {
         
         const mappedOrders = response.data.map(order => {
           console.log('Processing order:', order);
+          
+          // Get all item names or first item name
+          const itemNames = order.orderItems?.map(item => item.itemName).join(', ') || 'Unknown Item';
+          const firstItemName = order.orderItems?.[0]?.itemName || 'Unknown Item';
+          
           return {
             id: order.orderId,
             orderId: order.orderId.toString(),
-            name: order.orderItems[0]?.itemName || 'Unknown Item',
-            description: 'Order #' + order.orderId,
-            price: order.totalPrice,
-            quantity: order.orderItems.reduce((sum, item) => sum + item.quantity, 0),
+            name: order.orderItems?.length > 1 ? `${firstItemName} + ${order.orderItems.length - 1} more` : firstItemName,
+            description: `Order #${order.orderId} • ${new Date(order.orderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+            price: order.totalPrice?.toFixed(2) || '0.00',
+            quantity: order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0,
             image: bowlImage, // Using default image for now
             status: getStatusString(order.status),
-            orderDate: new Date(order.orderDate).toISOString().split('T')[0]
+            orderDate: new Date(order.orderDate).toISOString().split('T')[0],
+            items: order.orderItems || []
           };
         });
         
@@ -266,7 +272,7 @@ const OrdersPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen relative font-sans">
+    <div className="min-h-screen relative font-sans bg-gray-50">
       <div className="absolute w-full z-50">
         <DynamicNavigation />
       </div>
@@ -308,7 +314,7 @@ const OrdersPage = () => {
       </div>
 
       {/* Orders Content Section */}
-      <div className="bg-gray-50 pt-20 pb-8">
+      <div className="bg-gray-50 pt-20 pb-12 min-h-screen">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header Section */}
           <div className="mb-8">
@@ -407,7 +413,7 @@ const OrdersPage = () => {
           >
             {/* Loading State */}
             {loading ? (
-              <div className="text-center py-16">
+              <div className="text-center py-16 bg-white rounded-xl">
                 <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center">
                   <svg className="w-12 h-12 text-yellow-500 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
@@ -417,7 +423,7 @@ const OrdersPage = () => {
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading orders...</h3>
               </div>
             ) : error ? (
-              <div className="text-center py-16">
+              <div className="text-center py-16 bg-white rounded-xl">
                 <div className="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
                   <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -436,87 +442,90 @@ const OrdersPage = () => {
               currentOrders.map((order, index) => (
                 <div 
                   key={order.id} 
-                  className={`bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-500 ease-out ${
+                  className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-500 ease-out ${
                     isVisible.ordersList ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                   }`}
                   style={{ 
                     transitionDelay: isVisible.ordersList ? `${200 + (index * 100)}ms` : '0ms'
                   }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     {/* Order Info */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-start space-x-4 flex-1">
                       {/* Item Image */}
-                      <div className="w-20 h-20 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-20 h-20 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                         <img 
                           src={order.image} 
                           alt={order.name}
-                          className="w-16 h-16 object-contain"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = bowlImage;
+                          }}
                         />
                       </div>
                       
                       {/* Item Details */}
                       <div className="flex-grow min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-bold text-xl text-gray-900">{order.name}</h3>
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                          <h3 className="font-bold text-lg sm:text-xl text-gray-900">{order.name}</h3>
                           {/* Status Badge */}
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(order.status)}`}>
+                          <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium capitalize ${getStatusColor(order.status)}`}>
                             {order.status}
                           </span>
                         </div>
-                        <p className="text-gray-600 text-sm mb-2 line-clamp-2">{order.description}</p>
-                        <p className="text-gray-500 text-sm font-medium">Quantity: {order.quantity}x</p>
+                        <p className="text-gray-600 text-sm mb-2">{order.description}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <p className="text-gray-700 font-semibold">₱{order.price}</p>
+                          <p className="text-gray-500">Qty: {order.quantity}x</p>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Right side - Price and Actions */}
-                    <div className="flex items-center space-x-6">
-                      {/* Action Buttons */}
-                      <div className="flex items-center space-x-2">
-                        {/* View Order Button */}
+                    {/* Action Buttons */}
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      {/* View Order Button */}
+                      <button 
+                        onClick={() => handleViewOrder(order.orderId)}
+                        className="w-10 h-10 bg-gray-50 hover:bg-yellow-100 text-yellow-600 hover:text-yellow-700 rounded-full flex items-center justify-center transition-colors border border-gray-200 hover:border-yellow-300"
+                        title="View Order"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                      
+                      {/* Track Order Button */}
+                      <button 
+                        onClick={() => handleTrackOrder(order.orderId)}
+                        className="w-10 h-10 bg-gray-50 hover:bg-yellow-100 text-yellow-600 hover:text-yellow-700 rounded-full flex items-center justify-center transition-colors border border-gray-200 hover:border-yellow-300"
+                        title="Track Order"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </button>
+                      
+                      {/* Cancel Order Button - Only show if not complete */}
+                      {order.status !== 'Delivered' && order.status !== 'Cancelled' && (
                         <button 
-                          onClick={() => handleViewOrder(order.orderId)}
-                          className="w-10 h-10 bg-white-100 hover:bg-yellow-200 text-yellow-500 hover:text-yellow-700 rounded-full flex items-center justify-center transition-colors border border-gray-200 hover:border-yellow-200"
-                          title="View Order"
+                          onClick={() => handleCancelOrder(order.orderId)}
+                          className="w-10 h-10 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-full flex items-center justify-center transition-colors border border-red-200 hover:border-red-300"
+                          title="Cancel Order"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </button>
-                        
-                        {/* Track Order Button */}
-                        <button 
-                          onClick={() => handleTrackOrder(order.orderId)}
-                          className="w-10 h-10 bg-white-100 hover:bg-yellow-200 text-yellow-500 hover:text-yellow-700 rounded-full flex items-center justify-center transition-colors border border-gray-200 hover:border-yellow-200"
-                          title="Track Order"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </button>
-                        
-                        {/* Cancel Order Button - Only show if not complete */}
-                        {order.status !== 'complete' && order.status !== 'cancelled' && (
-                          <button 
-                            onClick={() => handleCancelOrder(order.orderId)}
-                            className="w-10 h-10 bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 rounded-full flex items-center justify-center transition-colors"
-                            title="Cancel Order"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
               /* No Orders Found */
-              <div className="text-center py-16">
+              <div className="text-center py-16 bg-white rounded-xl">
                 <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                   <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -554,9 +563,9 @@ const OrdersPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-between bg-white rounded-xl p-4 border border-gray-200">
-              <div className="text-sm text-gray-700">
-                Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} orders
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 gap-4">
+              <div className="text-sm text-gray-700 font-medium">
+                Showing <span className="font-bold text-gray-900">{indexOfFirstOrder + 1}</span> to <span className="font-bold text-gray-900">{Math.min(indexOfLastOrder, filteredOrders.length)}</span> of <span className="font-bold text-gray-900">{filteredOrders.length}</span> orders
               </div>
               
               <div className="flex items-center space-x-2">
@@ -564,10 +573,10 @@ const OrdersPage = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                     currentPage === 1
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      : 'bg-white text-gray-700 hover:bg-yellow-500 hover:text-white border border-gray-300 hover:border-yellow-500'
                   }`}
                 >
                   Previous
@@ -577,19 +586,36 @@ const OrdersPage = () => {
                 <div className="flex space-x-1">
                   {[...Array(totalPages)].map((_, index) => {
                     const pageNumber = index + 1;
-                    return (
-                      <button
-                        key={pageNumber}
-                        onClick={() => setCurrentPage(pageNumber)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === pageNumber
-                            ? 'bg-yellow-500 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {pageNumber}
-                      </button>
-                    );
+                    // Show first, last, current, and adjacent pages
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => setCurrentPage(pageNumber)}
+                          className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
+                            currentPage === pageNumber
+                              ? 'bg-yellow-500 text-white shadow-md'
+                              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    } else if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return (
+                        <span key={pageNumber} className="px-2 py-2 text-gray-400">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
                   })}
                 </div>
 
@@ -597,10 +623,10 @@ const OrdersPage = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                     currentPage === totalPages
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      : 'bg-white text-gray-700 hover:bg-yellow-500 hover:text-white border border-gray-300 hover:border-yellow-500'
                   }`}
                 >
                   Next

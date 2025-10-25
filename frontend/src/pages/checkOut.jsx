@@ -222,22 +222,26 @@ const CheckOutPage = () => {
                           : "0ms",
                       }}
                     >
-                      {/* Item Image */}
-                      <div className="w-20 h-20 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0 mr-6 shadow-sm">
+                      {/* Item Image - Fixed styling */}
+                      <div className="relative w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center flex-shrink-0 mr-6 shadow-sm overflow-hidden">
                         <img
-                          src={item.image || bowlImage}
+                          src={item.image && item.image !== bowlImage ? item.image : bowlImage}
                           alt={item.name}
-                          className="w-16 h-16 object-contain"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = bowlImage;
+                            e.target.className = "w-16 h-16 object-contain";
+                          }}
                         />
                       </div>
 
                       {/* Item Details */}
                       <div className="flex-grow min-w-0 mr-6">
                         <h3 className="font-bold text-xl text-gray-900 mb-1 truncate">{item.name}</h3>
-                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 overflow-hidden">
+                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
                           {item.description && item.description.length > 80 
                             ? `${item.description.substring(0, 80)}...` 
-                            : item.description || 'No description available'}
+                            : item.description || 'Delicious menu item'}
                         </p>
                       </div>
 

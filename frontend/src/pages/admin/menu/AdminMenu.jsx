@@ -321,110 +321,129 @@ const AdminMenu = () => {
                 {currentItems.map((item, index) => (
                   <div
                     key={item.id}
-                    className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden transition-all duration-500 hover:shadow-lg hover:scale-105"
+                    className="bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 flex flex-col h-full"
                     style={{
                       transitionDelay: `${index * 100}ms`
                     }}
                   >
-                    {/* Item Image with Overlaid Labels */}
-                    <div className="relative h-48 bg-yellow-500 flex items-center justify-center">
+                    {/* Item Image with Overlaid Labels - Fixed aspect ratio */}
+                    <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center overflow-hidden">
                       <img
                         src={`http://localhost:5143/${item.image}`}
                         alt={item.name}
-                        className="w-32 h-32 object-contain transition-transform duration-300 hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                        onError={(e) => {
+                          e.target.src = bowlImage;
+                          e.target.className = "w-32 h-32 object-contain transition-transform duration-500 hover:scale-110";
+                        }}
                       />
 
+                      {/* Gradient overlay for better label visibility */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+
                       {/* Item ID - Top Left */}
-                      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1">
-                        <span className="text-sm font-medium text-gray-900">#{item.itemId}</span>
+                      <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-2.5 py-1 shadow-lg">
+                        <span className="text-xs font-bold text-gray-800">#{item.itemId}</span>
                       </div>
 
                       {/* Status Label - Top Right */}
                       <div className="absolute top-3 right-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                          }`}>
-                          {item.isActive ? 'Active' : 'Inactive'}
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold shadow-lg ${item.isActive 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-gray-600 text-white'
+                        }`}>
+                          {item.isActive ? '● Active' : '○ Inactive'}
+                        </span>
+                      </div>
+
+                      {/* Category Badge - Bottom Left */}
+                      <div className="absolute bottom-3 left-3">
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold shadow-lg ${getCategoryColor(item.category)} border border-white/20`}>
+                          {item.category}
                         </span>
                       </div>
                     </div>
 
-
-
-                    {/* Item Details */}
-
-
-                    <div className="p-6">
-
-                      {/* Category Label */}
+                    {/* Item Details - Flexible grow section */}
+                    <div className="flex flex-col flex-grow p-5">
+                      {/* Title Section */}
                       <div className="mb-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
-                          {item.category}
-                        </span>
+                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1 leading-tight">
+                          {item.name}
+                        </h3>
                       </div>
 
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1 flex-1 mr-2">{item.name}</h3>
+                      {/* Description Section - Compact with line clamp */}
+                      <div className="mb-4">
+                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
+                          {item.description}
+                        </p>
                       </div>
 
+                      {/* Bottom Section - Always stays at bottom */}
+                      <div className="mt-auto space-y-4">
+                        {/* Price and Update Info */}
+                        <div className="flex items-center justify-between py-3 px-1">
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-bold text-yellow-500">₱{item.price.toFixed(2)}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs text-gray-500 block mb-0.5">Updated</span>
+                            <span className="text-xs text-gray-700 font-semibold">
+                              {formatDate(item.updatedDate)}
+                            </span>
+                          </div>
+                        </div>
 
-                      <p className="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-2">
-                        {item.description}
-                      </p>
+                        {/* Divider */}
+                        <div className="border-t border-gray-200"></div>
 
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-bold text-md">
-                          ₱{item.price.toFixed(2)}
-                        </span>
-                        <span className="text-xs text-gray-700 font-medium">
-                          Updated {formatDate(item.updatedDate)}
-                        </span>
-                      </div>
+                        {/* Action Buttons Grid */}
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                          <button
+                            onClick={() => handleView(item.id)}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            View
+                          </button>
 
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => handleView(item.id)}
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          View
-                        </button>
+                          <button
+                            onClick={() => handleEdit(item.id)}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Edit
+                          </button>
 
-                        <button
-                          onClick={() => handleEdit(item.id)}
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          Edit
-                        </button>
-
-                        <button
-                          onClick={() => handleToggleStatus(item.id)}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${item.isActive
-                            ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                            : 'bg-green-500 hover:bg-green-600 text-white'
+                          <button
+                            onClick={() => handleToggleStatus(item.id)}
+                            className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md ${item.isActive
+                              ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                              : 'bg-green-500 hover:bg-green-600 text-white'
                             }`}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-                          </svg>
-                          {item.isActive ? 'Disable' : 'Enable'}
-                        </button>
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l-4-4 4 4m0 6l-4 4-4-4" />
+                            </svg>
+                            {item.isActive ? 'Disable' : 'Enable'}
+                          </button>
 
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Delete
-                        </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
