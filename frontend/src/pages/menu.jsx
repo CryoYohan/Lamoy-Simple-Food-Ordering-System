@@ -16,6 +16,8 @@ const Menu = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(6); // Show 6 items per page
   const [isVisible, setIsVisible] = useState({
     hero: false,
     categories: false,
@@ -43,17 +45,26 @@ const Menu = () => {
 
         setCategories(categoriesData);
         
-        // Ensure price is properly formatted
-        const formattedItems = itemsRes.data.map(item => ({
-          ...item,
-          price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0
-        }));
+        // Format items with proper image URL handling and price - FIXED
+        const formattedItems = itemsRes.data.map(item => {
+          // Use the same image URL logic as AdminMenu
+          let imageUrl = item.imageUrl || '';
+          
+          return {
+            ...item,
+            price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
+            imageUrl: imageUrl // Keep the original path from backend
+          };
+        });
         
         setMenuItems(formattedItems);
 
-        // Debug: Log category IDs and menu item category IDs
-        console.log('Categories with IDs:', categoriesData.map(cat => ({ name: cat.name, id: cat.id, categoryId: cat.categoryId })));
-        console.log('Menu items with category IDs:', formattedItems.map(item => ({ name: item.name, categoryId: item.categoryId, price: item.price })));
+        console.log('Formatted items:', formattedItems.map(item => ({ 
+          name: item.name, 
+          categoryId: item.categoryId, 
+          imageUrl: item.imageUrl,
+          price: item.price 
+        })));
 
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -144,6 +155,22 @@ const Menu = () => {
 
     return matchesCategory && matchesSearch;
   });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  // Remove this section - Don't scroll on category or search change
+  // useEffect(() => {
+  //   window.scrollTo(0, 0);
+  // }, [selectedCategory]);
 
   // Debug: Log filtered items whenever dependencies change
   useEffect(() => {
@@ -320,39 +347,49 @@ const Menu = () => {
                 Refresh Page
               </button>
             </div>
-          ) : filteredItems.length > 0 ? (
+          ) : currentItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {filteredItems.map((item, index) => (
+              {currentItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className={`bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:scale-105 flex flex-col h-full ${isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  className={`bg-white rounded-2xl border border-gray-200 overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 flex flex-col h-full ${isVisible.menuSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                     }`}
                   style={{
                     transitionDelay: `${400 + (index * 100)}ms`
                   }}
                 >
-                  {/* Item Image */}
-                  <div className="relative h-48 sm:h-56 bg-yellow-500 flex items-center justify-center overflow-hidden rounded-t-2xl flex-shrink-0">
+                  {/* Item Image - Fixed aspect ratio matching AdminMenu */}
+                  <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center overflow-hidden flex-shrink-0">
                     <img
-                      src={bowlImage}
+                      src={item.imageUrl ? `http://localhost:5143/${item.imageUrl}` : bowlImage}
                       alt={item.name}
-                      className="w-32 h-32 sm:w-40 sm:h-40 object-contain transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        console.log('Image load error for:', item.name, 'URL:', e.target.src);
+                        e.target.src = bowlImage;
+                        // Keep object-cover even on fallback
+                      }}
                     />
+                    {/* Gradient overlay for better aesthetics */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
                   </div>
 
                   {/* Item Details */}
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors duration-300">
+                  <div className="p-5 sm:p-6 flex flex-col flex-grow">
+                    {/* Title with line clamp */}
+                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors duration-300 line-clamp-1 min-h-[1.75rem]">
                       {item.name || 'Loading...'}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-grow">
+                    
+                    {/* Description with proper line clamp and fixed height */}
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-grow line-clamp-2 min-h-[2.5rem]">
                       {item.description || 'Loading description...'}
                     </p>
 
                     {/* Price and Add Button - Fixed at bottom */}
-                    <div className="flex justify-between items-center mt-auto">
-                      <span className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-bold text-md">
-                        ₱ {(item.price || 0).toFixed(2)}
+                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
+                      <span className="bg-yellow-100 text-yellow-500 px-4 py-2 rounded-full font-bold text-lg">
+                        ₱{(item.price || 0).toFixed(2)}
                       </span>
                       <button
                         onClick={() => {
@@ -364,6 +401,9 @@ const Menu = () => {
                           const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
                           const itemExists = existingCart.find(i => i.itemId === item.itemId);
 
+                          // Store the full image URL in cart
+                          const imageForCart = item.imageUrl ? `http://localhost:5143/${item.imageUrl}` : bowlImage;
+
                           let updatedCart;
                           if (itemExists) {
                             updatedCart = existingCart.map(i =>
@@ -374,7 +414,7 @@ const Menu = () => {
                             updatedCart = [...existingCart, {
                               ...item,
                               quantity: 1,
-                              image: bowlImage
+                              image: imageForCart // Use the full URL
                             }];
                             showSuccess(`${item.name} added to cart! Ready to order.`);
                           }
@@ -384,9 +424,9 @@ const Menu = () => {
                           setCartCount(updatedCart.reduce((sum, item) => sum + item.quantity, 0));
                         }}
                         disabled={!item.price || item.price === 0}
-                        className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-full font-semibold transition-all duration-300 hover:shadow-lg flex items-center gap-2 group"
+                        className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-full font-semibold transition-all duration-300 hover:shadow-lg flex items-center gap-2 group/button"
                       >
-                        <svg className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 transition-transform duration-300 group-hover/button:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
                         <span className="hidden sm:inline">Add Cart</span>
@@ -418,6 +458,91 @@ const Menu = () => {
               >
                 Clear Filters
               </button>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && !isLoading && !error && (
+            <div className="mt-12 flex flex-col sm:flex-row items-center justify-between bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 gap-4">
+              <div className="text-sm text-gray-700 font-medium">
+                Showing <span className="font-bold text-gray-900">{indexOfFirstItem + 1}</span> to{' '}
+                <span className="font-bold text-gray-900">{Math.min(indexOfLastItem, filteredItems.length)}</span> of{' '}
+                <span className="font-bold text-gray-900">{filteredItems.length}</span> items
+              </div>
+
+              <div className="flex items-center space-x-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(prev - 1, 1));
+                    // Remove scroll - window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-yellow-500 hover:text-white border border-gray-300 hover:border-yellow-500'
+                  }`}
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex space-x-1">
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNumber = index + 1;
+                    // Show first, last, current, and adjacent pages
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => {
+                            setCurrentPage(pageNumber);
+                            // Remove scroll - window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
+                            currentPage === pageNumber
+                              ? 'bg-yellow-500 text-white shadow-md'
+                              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    } else if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return (
+                        <span key={pageNumber} className="px-2 py-2 text-gray-400">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                    // Remove scroll - window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-yellow-500 hover:text-white border border-gray-300 hover:border-yellow-500'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>
