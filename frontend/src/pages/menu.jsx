@@ -167,6 +167,11 @@ const Menu = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory]);
 
+  // Remove this section - Don't scroll on category or search change
+  // useEffect(() => {
+  //   window.scrollTo(0, 0);
+  // }, [selectedCategory]);
+
   // Debug: Log filtered items whenever dependencies change
   useEffect(() => {
     console.log('Current search term:', searchTerm);
@@ -470,7 +475,7 @@ const Menu = () => {
                 <button
                   onClick={() => {
                     setCurrentPage(prev => Math.max(prev - 1, 1));
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Remove scroll - window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   disabled={currentPage === 1}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -497,7 +502,7 @@ const Menu = () => {
                           key={pageNumber}
                           onClick={() => {
                             setCurrentPage(pageNumber);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            // Remove scroll - window.scrollTo({ top: 0, behavior: 'smooth' });
                           }}
                           className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
                             currentPage === pageNumber
@@ -526,7 +531,7 @@ const Menu = () => {
                 <button
                   onClick={() => {
                     setCurrentPage(prev => Math.min(prev + 1, totalPages));
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Remove scroll - window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   disabled={currentPage === totalPages}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
