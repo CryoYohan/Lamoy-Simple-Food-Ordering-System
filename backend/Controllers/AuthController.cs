@@ -1,49 +1,45 @@
-using System;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using backend.Data;
 using backend.DTOs.User;
+using backend.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
 {
+    [Route("api/auth")]
     [ApiController]
-    [Route("api/login")]
     public class AuthController : ControllerBase
     {
-        private readonly JwtTokenHelper _jwtHelper;
-        private readonly ApplicationDBContext _context;
+        private readonly IAuthService _authService;
 
-        public AuthController(JwtTokenHelper jwtHelper, ApplicationDBContext context)
+        public AuthController(IAuthService authService)
         {
-            _jwtHelper = jwtHelper;
-            _context = context;
+            _authService = authService;
         }
 
-        [HttpPost]
-        public IActionResult Login([FromBody] LoginRequest request)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-                return BadRequest("Email and password are required.");
+            // No try-catch needed!
+            // If RegisterAsync throws "InvalidOperationException",
+            // the middleware will catch it and return a 409 Conflict.
+            
+            await _authService.RegisterAsync(request);
+            return Ok(new { message = "Registration complete!" });
+        }
 
-            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
-            if (user != null && BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            if (!ModelState.IsValid)
             {
-                var token = _jwtHelper.GenerateToken(
-                    user.UserId.ToString(),
-                    request.Email,
-                    user.Role.ToString(),
-                    user.UserName
-                );
-
-                return Ok(new
-                {
-                    Token = token,
-                    Role = user.Role, // 1 = Admin, 2 = User
-                    UserName = user.UserName
-                });
+                return BadRequest(ModelState);
             }
 
-            return Unauthorized("Invalid Email or password.");
+            // No try-catch needed!
+            // If LoginAsync throws "UnauthorizedAccessException",
+            // the middleware will catch it and return a 401 Unauthorized.
+            
+            var response = await _authService.LoginAsync(request);
+            return Ok(response); // Returns the 200 OK with LoginResponse DTO
         }
     }
 }

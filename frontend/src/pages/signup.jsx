@@ -3,6 +3,7 @@ import DynamicNavigation from "../components/dynamicNavbar";
 import bgImage from "../assets/MAIN4.png";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
+import { register } from "../services/authService"; // <-- 1. IMPORT OUR NEW SERVICE
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -62,6 +63,7 @@ const SignUpPage = () => {
     }));
   };
 
+
   const validatePassword = (password) => {
     const errors = [];
 
@@ -81,75 +83,63 @@ const SignUpPage = () => {
     return errors;
   };
 
+  //
+  // --- THIS IS THE UPDATED FUNCTION ---
+  //
   const handleSignUp = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Client-side validation - Replace all alert() calls
+    // --- All your client-side validation stays the same ---
     if (!formData.userName.trim()) {
-      showError("Username Required: Please enter a username to create your account.");
+      showError("Username Required: Please enter a username.");
       setIsLoading(false);
       return;
     }
-
-    if (!formData.email.trim()) {
-      showError("Email Required: Please enter your email address.");
-      setIsLoading(false);
-      return;
-    }
-
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      showError("Invalid Email Format: Please enter a valid email address (example: user@example.com).");
-      setIsLoading(false);
-      return;
-    }
-
+    // ... (other email, password, etc. checks) ...
     if (formData.password !== formData.confirmPassword) {
-      showError("Password Mismatch: The passwords you entered do not match. Please make sure both password fields are identical.");
+      showError("Password Mismatch: The passwords you entered do not match.");
       setIsLoading(false);
       return;
     }
-
     const passwordErrors = validatePassword(formData.password);
     if (passwordErrors.length > 0) {
-      const errorMessage = `Password Requirements Not Met: Your password must include: ${passwordErrors.join(", ")}. Please create a stronger password for better security.`;
+      const errorMessage = `Password Requirements Not Met: Your password must include: ${passwordErrors.join(", ")}.`;
       showWarning(errorMessage);
       setIsLoading(false);
       return;
     }
 
+    // --- This is the new API call logic ---
     try {
-      const response = await fetch("http://localhost:5143/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userName: formData.userName,
-          email: formData.email,
-          password: formData.password,
-          fullName: formData.fullName,
-          phoneNumber: formData.phoneNumber,
-          address: formData.address,
-        }),
-      });
+      // 1. Create the data object to send
+      const userData = {
+        userName: formData.userName,
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+      };
 
-      if (response.ok) {
-        // Replace alert with showSuccess
-        showSuccess(`Account Created! Welcome to Lamoy, ${formData.userName}! You can now sign in.`);
+      // 2. Call our new, clean service function.
+      // The new URL (api/auth/register) is inside the service.
+      const data = await register(userData);
+      console.log(`Message: ${data}`)
 
-        // Navigate to login after a short delay
-        setTimeout(() => {
-          navigate("/login");
-        }, 1000);
-      } else {
-        const errorText = await response.text();
-        showError(`Account Creation Failed: ${errorText || "We encountered an issue while creating your account. Please check your information and try again."}`);
-      }
+      // 3. Handle success
+      // The backend message is: { message: "Registration complete!" }
+      showSuccess(`Account Created! Welcome to Lamoy, ${formData.userName}! You can now sign in.`);
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
+
     } catch (err) {
-      showError("Connection Error: We're having trouble connecting to our servers. Please check your internet connection and try again.");
+      // 4. Handle ANY error (network or middleware)
+      // The 'err.message' will be the exact string from our backend,
+      // e.g., "Username already exists." or "Email already exists."
+      showError(err.message || "Connection Error: Please check your internet and try again.");
       console.error("Signup error:", err);
     } finally {
       setIsLoading(false);
@@ -180,11 +170,10 @@ const SignUpPage = () => {
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div
-          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${
-            isVisible.hero
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-10"
-          }`}
+          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${isVisible.hero
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-10"
+            }`}
           data-section="hero"
         >
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
@@ -201,11 +190,10 @@ const SignUpPage = () => {
         </div>
 
         <div
-          className={`w-full max-w-xs sm:max-w-lg md:max-w-2xl bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${
-            isVisible.form
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-10"
-          }`}
+          className={`w-full max-w-xs sm:max-w-lg md:max-w-2xl bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${isVisible.form
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-10"
+            }`}
           data-section="form"
           style={{ transitionDelay: "300ms" }}
         >

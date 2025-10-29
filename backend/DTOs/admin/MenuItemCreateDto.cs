@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace backend.DTO.admin
+namespace backend.DTOs.admin
 {
     public class MenuItemCreateDto
     {

@@ -3,38 +3,42 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-public class JwtTokenHelper
+namespace backend.Helpers
 {
-    private readonly IConfiguration _config;
-
-    public JwtTokenHelper(IConfiguration config)
+    public class JwtTokenHelper
     {
-        _config = config;
-    }
+        private readonly IConfiguration _config;
 
-    public string GenerateToken(string userId, string email, string role, string name)
-    {
-        var claims = new[]
+        public JwtTokenHelper(IConfiguration config)
         {
-            new Claim("userId", userId),
-            new Claim("email", email),
-            new Claim("role", role),
-            new Claim("name", name)
-        };
+            _config = config;
+        }
 
-#pragma warning disable CS8604 // Possible null reference argument.
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-#pragma warning restore CS8604 // Possible null reference argument.
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        public string GenerateToken(string userId, string email, string role, string name)
+        {
+            var claims = new[]
+            {
+                new Claim("userId", userId),
+                new Claim("email", email),
+                new Claim("role", role),
+                new Claim("name", name)
+            };
 
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(Convert.ToDouble(_config["Jwt:ExpireMinutes"])),
-            signingCredentials: creds
-        );
+    #pragma warning disable CS8604 // Possible null reference argument.
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+    #pragma warning restore CS8604 // Possible null reference argument.
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(_config["Jwt:ExpireMinutes"])),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }
+

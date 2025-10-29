@@ -7,11 +7,17 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
 using System.Text;
+using backend.Helpers;
+using backend.Repositories;
+using backend.Services;
+using backend.Middleware;
 
 // Load secrets from .env file
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // Add services to the container.
 builder.Services.AddOpenApi();
@@ -64,27 +70,43 @@ builder.Services.AddCors(options =>
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddAuthorization();
 
+// Add AuthService
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Add Repositories Service
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Add our user-related service
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Add our menu-related services
+builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+
+// Add our order-related services
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
 var app = builder.Build();
+
+// 1. ErrorHandling MUST be the very first thing
+// So it can catch errors from all other middleware
+app.UseErrorHandlingMiddleware();
+
+// 2. Redirect to HTTPS
+app.UseHttpsRedirection();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-// Swagger
-app.UseSwagger();
-app.UseSwaggerUI();
-
-// Use Auth
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Use CORS before other middleware that handles requests
-app.UseCors("AllowReactApp");
-
-// ✅ Serve static files (for uploads)
-app.UseStaticFiles(); // this enables serving from wwwroot by default
+// 3. Serve static files (e.g., images)
+app.UseStaticFiles(); // for wwwroot
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
@@ -92,7 +114,17 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
-app.UseHttpsRedirection();
+// 4. CORS must come BEFORE Authentication/Authorization
+// to handle preflight (OPTIONS) requests
+app.UseCors("AllowReactApp");
+
+// 5. Authentication (Who are you?)
+app.UseAuthentication();
+
+// 6. Authorization (Are you allowed?)
+app.UseAuthorization();
+
+// 7. Map to the final controller endpoint
 app.MapControllers();
 
 app.Run();

@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using backend.DTOs.admin;
+using backend.DTOs.Menu;
+using backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using backend.Models;
-using backend.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
@@ -13,94 +10,87 @@ namespace backend.Controllers
     [Route("api/menu")]
     public class MenuController : ControllerBase
     {
-        private readonly ApplicationDBContext _context;
+        private readonly IMenuService _menuService;
 
-        public MenuController(ApplicationDBContext context)
+        // Only inject the service
+        public MenuController(IMenuService menuService)
         {
-            _context = context;
+            _menuService = menuService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult> GetAllItems()
+        // --- ADMIN-ONLY ENDPOINTS ---
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")] // Protected!
+        public async Task<ActionResult<MenuItemDto>> CreateMenuItem([FromForm] MenuItemCreateDto dto)
         {
-            var items = await _context.MenuItems
-             .Where(mi => mi.IsAvailable)
-             .Select(mi => new
-             {
-                 mi.ItemId,
-                 mi.Name,
-                 mi.Description,
-                 mi.Price,
-                 mi.ImageUrl,
-                 mi.CategoryId,
-                 mi.IsAvailable
-             })
-             .ToListAsync();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Logic is now in the service
+            // Middleware will catch "Category not found" exceptions
+            var createdItem = await _menuService.CreateMenuItemAsync(dto);
+            
+            // Return a 201 Created with the new item
+            return CreatedAtAction(nameof(GetMenuItemById), new { id = createdItem.ItemId }, createdItem);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")] // Protected!
+        public async Task<IActionResult> UpdateMenuItem(int id, [FromBody] MenuItemUpdateDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Middleware will catch "Item not found" exceptions
+            await _menuService.UpdateMenuItemAsync(id, dto);
+            return NoContent(); // 204 No Content is standard for a successful PUT
+        }
+        
+        // --- PUBLIC ENDPOINTS ---
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetAllItems()
+        {
+            var items = await _menuService.GetAllAvailableItemsAsync();
             return Ok(items);
         }
 
         [HttpGet("categories")]
-        public async Task<ActionResult> GetAllCategories()
+        public async Task<ActionResult<IEnumerable<MenuCategoryDto>>> GetAllCategories()
         {
-            var categories = await _context.MenuCategories.ToListAsync();
+            var categories = await _menuService.GetAllCategoriesAsync();
             return Ok(categories);
         }
 
-        // GET: api/menu/category/{categoryId}
         [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult> GetMenuItemsByCategory(int categoryId)
+        public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetMenuItemsByCategory(int categoryId)
         {
-            var items = await _context.MenuItems
-                .Where(mi => mi.CategoryId == categoryId && mi.IsAvailable)
-                .ToListAsync();
+            var items = await _menuService.GetAvailableItemsByCategoryIdAsync(categoryId);
             return Ok(items);
         }
-
-        // GET: api/menu/search?query=xxx
+        
         [HttpGet("search")]
-        public async Task<ActionResult> SearchMenuItems([FromQuery] string query)
+        public async Task<ActionResult<IEnumerable<MenuItemDto>>> SearchMenuItems([FromQuery] string query)
         {
-            if (string.IsNullOrWhiteSpace(query))
-                return BadRequest("Query parameter is required.");
-
-            var items = await _context.MenuItems
-                .Where(mi => mi.IsAvailable &&
-                    (EF.Functions.Like(mi.Name, $"%{query}%") ||
-                     EF.Functions.Like(mi.Description, $"%{query}%")))
-                .ToListAsync();
+            // Middleware will catch the "Query required" exception
+            var items = await _menuService.SearchAvailableItemsAsync(query);
             return Ok(items);
         }
 
-        // PUT: api/menu/{id}
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateMenuItem(int id, [FromBody] MenuItem updatedItem)
+        // Helper endpoint for the CreatedAtAction
+        // Not strictly required by your old code, but good practice
+        [HttpGet("{id}")]
+        public async Task<ActionResult<MenuItemDto>> GetMenuItemById(int id)
         {
-            if (id != updatedItem.ItemId)
-                return BadRequest("Item ID mismatch.");
-
-            var existingItem = await _context.MenuItems.FindAsync(id); /// Line 81-83 Service Layer
-
-            if (existingItem == null)
-                return NotFound("Menu item not found.");
-
-            // Update fields
-            existingItem.Name = updatedItem.Name;     /// Move to Service Layer
-            existingItem.Description = updatedItem.Description;
-            existingItem.Price = updatedItem.Price;
-            existingItem.ImageUrl = updatedItem.ImageUrl;
-            existingItem.CategoryId = updatedItem.CategoryId;
-            existingItem.IsAvailable = updatedItem.IsAvailable;
-
-            try /// Move to Repository Layer
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return StatusCode(500, "Error updating the menu item.");
-            }
-
-            return NoContent();
+            // This service method/repo method doesn't exist yet,
+            // but you would add it following the same pattern
+            // var item = await _menuService.GetItemByIdAsync(id);
+            // if (item == null) return NotFound();
+            // return Ok(item);
+            
+            // For now, we'll just return Ok to make CreatedAtAction work
+            return Ok("Endpoint not fully implemented, but needed for 201 Created.");
         }
     }
 }
