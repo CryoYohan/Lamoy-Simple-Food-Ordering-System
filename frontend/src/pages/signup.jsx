@@ -84,7 +84,7 @@ const SignUpPage = () => {
   };
 
   //
-  // --- THIS IS THE UPDATED FUNCTION ---
+  // --- THIS IS THE SIGNUP FUNCTION ---
   //
   const handleSignUp = async (e) => {
     e.preventDefault();

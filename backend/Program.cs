@@ -88,6 +88,9 @@ builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
+// Add HTTPContextAccessor for User Auth
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 // 1. ErrorHandling MUST be the very first thing

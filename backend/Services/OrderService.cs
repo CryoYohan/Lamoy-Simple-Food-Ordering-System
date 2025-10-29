@@ -1,87 +1,134 @@
 using backend.DTOs.Order;
 using backend.Models;
 using backend.Repositories;
+using Microsoft.AspNetCore.Http; // Required for IHttpContextAccessor
+using System.Security.Claims; // Required for ClaimsPrincipal
 
 namespace backend.Services
 {
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IUserRepository _userRepository; // We also inject this
+        private readonly IUserRepository _userRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<OrderService> _logger;
 
-        public OrderService(IOrderRepository orderRepository, IUserRepository userRepository, ILogger<OrderService> logger)
+        public OrderService(
+            IOrderRepository orderRepository,
+            IUserRepository userRepository,
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<OrderService> logger)
         {
             _orderRepository = orderRepository;
             _userRepository = userRepository;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
 
+        // ... CreateOrderAsync remains the same ...
         public async Task<CheckoutResponse> CreateOrderAsync(CheckoutRequest request)
-        {
-            if (request.Items == null || !request.Items.Any())
-            {
-                throw new InvalidOperationException("Cart is empty.");
-            }
+        {
+            if (request.Items == null || !request.Items.Any())
+            {
+                throw new InvalidOperationException("Cart is empty.");
+            }
 
-            // **Security Note:** In a real app, you would get the UserId from the
-            // user's JWT token, not the request body, to prevent one user
-            // from placing an order for another user.
+            // --- SECURITY FIX START ---
+            // Get the User ID from the authenticated user's claims
+            var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier) // Standard claim type for user ID
+                           ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("userId"); // Fallback to custom claim if used
 
-            // Validate that the user exists
-            if (!await _userRepository.UserExistsByIdAsync(request.UserId))
-            {
-                throw new KeyNotFoundException($"User with ID {request.UserId} not found.");
-            }
+            // FIX: Declare variable outside the if
+            int authenticatedUserId = 0; // Initialize with a default
 
-            // 1. Calculate total price
-            decimal totalPrice = request.Items.Sum(i => i.Price * i.Quantity);
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out authenticatedUserId)) // Assign within TryParse
+            {
+                _logger.LogError("Could not extract valid UserId claim from authenticated user during checkout.");
+                throw new UnauthorizedAccessException("User is not properly authenticated or UserId claim is missing.");
+            }
 
-            // 2. Create the main Order object
-            var order = new Order
-            {
-                UserId = request.UserId,
-                DeliveryAddress = request.DeliveryAddress,
-                TotalPrice = totalPrice,
-                Status = OrderStatus.Pending,
-                OrderDate = DateTime.UtcNow,
-                // 3. Create and add OrderItem objects to the Order
-                OrderItems = request.Items.Select(cartItem => new OrderItem
-                {
-                    ItemId = cartItem.ItemId,
-                    Quantity = cartItem.Quantity,
-                    PriceAtPurchase = cartItem.Price
-                }).ToList()
-            };
+            // Optional: If the request *still* includes a UserId, you can log a warning or even throw an error if it doesn't match.
+            if (request.UserId != 0 && request.UserId != authenticatedUserId)
+            {
+                 _logger.LogWarning("Checkout request UserId ({RequestUserId}) does not match authenticated user UserId ({AuthenticatedUserId}). Using authenticated user ID.", request.UserId, authenticatedUserId);
+                 // Depending on requirements, you could throw new SecurityException("Attempted to place order for a different user.");
+            }
+            // --- SECURITY FIX END ---
 
-            // 4. Pass the complete Order object (with its items) to the repository
-            // The repo will save it all in one transaction.
-            var createdOrder = await _orderRepository.CreateOrderAsync(order);
-            _logger.LogInformation($"Order {createdOrder.OrderId} placed successfully for user {createdOrder.UserId}");
 
-            return new CheckoutResponse 
-            { 
-                Message = "Order placed successfully!", 
-                OrderId = createdOrder.OrderId 
-            };
-        }
+            // Validate that the authenticated user exists (using the ID from claims)
+            if (!await _userRepository.UserExistsByIdAsync(authenticatedUserId))
+            {
+                 // This case should ideally not happen if the token is valid, but good to check.
+                _logger.LogError("Authenticated user with ID {UserId} not found in the database during checkout.", authenticatedUserId);
+                throw new KeyNotFoundException($"Authenticated user with ID {authenticatedUserId} not found.");
+            }
+
+            // 1. Calculate total price
+            decimal totalPrice = request.Items.Sum(i => i.Price * i.Quantity);
+
+            // 2. Create the main Order object
+            var order = new Order
+            {
+                UserId = authenticatedUserId, // <-- Use the ID obtained securely from claims
+                DeliveryAddress = request.DeliveryAddress, // Delivery address can come from request or user profile
+                TotalPrice = totalPrice,
+                Status = OrderStatus.Pending,
+                OrderDate = DateTime.UtcNow,
+                // 3. Create and add OrderItem objects to the Order
+                OrderItems = request.Items.Select(cartItem => new OrderItem
+                {
+                    ItemId = cartItem.ItemId,
+                    Quantity = cartItem.Quantity,
+                    PriceAtPurchase = cartItem.Price
+                }).ToList()
+            };
+
+            // 4. Pass the complete Order object (with its items) to the repository
+            var createdOrder = await _orderRepository.CreateOrderAsync(order);
+            _logger.LogInformation($"Order {createdOrder.OrderId} placed successfully for user {createdOrder.UserId}");
+
+            return new CheckoutResponse
+            {
+                Message = "Order placed successfully!",
+                OrderId = createdOrder.OrderId
+            };
+        }
+
 
         public async Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(int userId)
         {
+             var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+                            ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("userId");
+
+             // FIX: Declare variable outside the if
+             int authenticatedUserId = 0; // Initialize with a default
+
+             // Check if claim is valid AND if the authenticated ID matches the requested ID
+             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out authenticatedUserId) || authenticatedUserId != userId)
+             {
+                 var isAdmin = _httpContextAccessor.HttpContext?.User?.IsInRole("Admin") ?? false;
+                 if (!isAdmin)
+                 {
+                    // Now authenticatedUserId is guaranteed to be in scope here
+                    _logger.LogWarning("User {AuthenticatedUserId} attempted to access orders for different user {RequestedUserId}.", authenticatedUserId, userId);
+                    throw new UnauthorizedAccessException("You are not authorized to view these orders.");
+                 }
+                 // Now authenticatedUserId is guaranteed to be in scope here
+                 _logger.LogInformation("Admin user {AdminUserId} accessing orders for user {RequestedUserId}.", authenticatedUserId, userId);
+             }
+
             _logger.LogInformation($"Getting orders for user {userId}");
-            
-            // 1. Check if user exists
+
             if (!await _userRepository.UserExistsByIdAsync(userId))
             {
                 _logger.LogWarning($"User with ID {userId} not found");
                 throw new KeyNotFoundException($"User with ID {userId} not found.");
             }
 
-            // 2. Get data from repo
             var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
             _logger.LogInformation($"Found {orders.Count()} orders for user {userId}");
 
-            // 3. Map models to DTOs
             return orders.Select(MapOrderToDto);
         }
 
@@ -91,8 +138,27 @@ namespace backend.Services
 
             if (order == null)
             {
+                 _logger.LogWarning("Order with ID {OrderId} not found during GetOrderByIdAsync.", orderId);
                 throw new KeyNotFoundException($"Order with ID {orderId} not found.");
             }
+
+             var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+                            ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("userId");
+
+            // FIX: Declare variable outside the if
+            int authenticatedUserId = 0; // Initialize with a default
+
+             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out authenticatedUserId) || authenticatedUserId != order.UserId)
+             {
+                 var isAdmin = _httpContextAccessor.HttpContext?.User?.IsInRole("Admin") ?? false;
+                 if (!isAdmin) {
+                    // Now authenticatedUserId is guaranteed to be in scope here
+                    _logger.LogWarning("User {AuthenticatedUserId} attempted to access order {OrderId} belonging to user {OrderUserId}.", authenticatedUserId, orderId, order.UserId);
+                    throw new UnauthorizedAccessException("You are not authorized to view this order.");
+                 }
+                 // Now authenticatedUserId is guaranteed to be in scope here
+                 _logger.LogInformation("Admin user {AdminUserId} accessing order {OrderId} for user {OrderUserId}.", authenticatedUserId, orderId, order.UserId);
+             }
 
             return MapOrderToDto(order);
         }
@@ -108,7 +174,24 @@ namespace backend.Services
                 throw new KeyNotFoundException($"Order with ID {orderId} not found.");
             }
 
-            // Business logic: You can only cancel pending orders
+             var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+                            ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("userId");
+
+            // FIX: Declare variable outside the if
+            int authenticatedUserId = 0; // Initialize with a default
+
+             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out authenticatedUserId) || authenticatedUserId != order.UserId)
+             {
+                 var isAdmin = _httpContextAccessor.HttpContext?.User?.IsInRole("Admin") ?? false;
+                 if (!isAdmin) {
+                    // Now authenticatedUserId is guaranteed to be in scope here
+                    _logger.LogWarning("User {AuthenticatedUserId} attempted to cancel order {OrderId} belonging to user {OrderUserId}.", authenticatedUserId, orderId, order.UserId);
+                    throw new UnauthorizedAccessException("You are not authorized to cancel this order.");
+                 }
+                 // Now authenticatedUserId is guaranteed to be in scope here
+                 _logger.LogInformation("Admin user {AdminUserId} cancelling order {OrderId} for user {OrderUserId}.", authenticatedUserId, orderId, order.UserId);
+             }
+
             if (order.Status != OrderStatus.Pending)
             {
                 _logger.LogWarning($"Attempt to cancel order {orderId} failed (Status: {order.Status})");
@@ -116,7 +199,7 @@ namespace backend.Services
             }
 
             order.Status = OrderStatus.Cancelled;
-            await _orderRepository.SaveChangesAsync(); // Save the changes
+            await _orderRepository.SaveChangesAsync();
             _logger.LogInformation($"Order {orderId} cancelled successfully");
         }
 
@@ -124,24 +207,41 @@ namespace backend.Services
         // --- Helper Mapping Method ---
         private OrderDto MapOrderToDto(Order order)
         {
-            return new OrderDto
-            {
-                OrderId = order.OrderId,
-                UserId = order.UserId,
-                TotalPrice = order.TotalPrice,
-                Status = order.Status,
-                OrderDate = order.OrderDate,
-                DeliveryAddress = order.DeliveryAddress,
-                OrderItems = order.OrderItems.Select(oi => new OrderItemDto
-                {
-                    OrderItemId = oi.OrderItemId,
-                    Quantity = oi.Quantity,
-                    PriceAtPurchase = oi.PriceAtPurchase,
-                    ItemName = oi.MenuItem?.Name ?? "Unknown Item",
-                    ItemId = oi.MenuItem?.ItemId ?? 0,
-                    Description = oi.MenuItem?.Description
-                }).ToList()
-            };
+            // ... (Mapping logic remains the same, including the Debug log) ...
+             return new OrderDto
+            {
+                OrderId = order.OrderId,
+                UserId = order.UserId,
+                TotalPrice = order.TotalPrice,
+                Status = order.Status,
+                OrderDate = order.OrderDate,
+                DeliveryAddress = order.DeliveryAddress,
+                OrderItems = order.OrderItems.Select(oi => {
+                    // --- ADD DEBUG LOG HERE ---
+                    _logger.LogDebug("Mapping OrderItem {OrderItemId} for Order {OrderId}. MenuItem is null: {IsMenuItemNull}, ItemId: {ItemId}",
+                        oi.OrderItemId, order.OrderId, oi.MenuItem == null, oi.ItemId);
+                    // --- END DEBUG LOG ---
+
+                    if (oi.MenuItem == null)
+                    {
+                        // Log a warning on the backend when this happens
+                        _logger.LogWarning("Order {OrderId}, OrderItem {OrderItemId} references invalid ItemId {ItemId}. MenuItem object was null during mapping.",
+                            order.OrderId, oi.OrderItemId, oi.ItemId);
+                    }
+
+                    return new OrderItemDto
+                    {
+                        OrderItemId = oi.OrderItemId,
+                        Quantity = oi.Quantity,
+                        PriceAtPurchase = oi.PriceAtPurchase,
+                        // Still use the null-coalescing operator for safety
+                        ItemName = oi.MenuItem?.Name ?? $"Unknown Item (ID: {oi.ItemId})", // Include ID in fallback
+                        ItemId = oi.MenuItem?.ItemId ?? oi.ItemId, // Return the original ItemId if MenuItem is null
+                        Description = oi.MenuItem?.Description
+                    };
+                }).ToList()
+            };
         }
     }
 }
+

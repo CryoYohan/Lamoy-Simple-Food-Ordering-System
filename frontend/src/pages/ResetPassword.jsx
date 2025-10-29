@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DynamicNavigation from '../components/dynamicNavbar';
 import bgImage from '../assets/MAIN4.png';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+// 1. Import the service function
+import { resetPassword } from '../services/authService';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -40,49 +42,46 @@ const ResetPassword = () => {
     setIsVisible(prev => ({ ...prev, hero: true }));
   }, []);
 
+  //
+  // --- THIS IS THE Reset Password FUNCTION ---
+  //
   const handleReset = async (e) => {
     e.preventDefault();
     setMessage('');
 
     if (newPassword !== confirmPassword) {
-        setMessage('Passwords do not match');
-        setMessageType('error');
-        return;
+      setMessage('Passwords do not match');
+      setMessageType('error');
+      return;
+    }
+
+    if (!token) {
+      setMessage('No reset token found. Please request a new link.');
+      setMessageType('error');
+      return;
     }
 
     setIsLoading(true);
     try {
-        const response = await fetch('http://localhost:5143/api/forgot-password/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword }),
-        });
+      // 2. Call the service function
+      const data = await resetPassword(token, newPassword);
 
-        let data;
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-        } else {
-        // Parse plain text responses safely
-        data = { message: await response.text() };
-        }
+      // 3. Handle the success message
+      // data.message = "Password reset successful."
+      setMessage(data.message + ' Redirecting to login...');
+      setMessageType('success');
+      setTimeout(() => navigate('/login'), 3000);
 
-        if (response.ok) {
-        setMessage('Password reset successful! Redirecting to login...');
-        setMessageType('success');
-        setTimeout(() => navigate('/login'), 3000);
-        } else {
-        setMessage(data.message || 'Failed to reset password.');
-        setMessageType('error');
-        }
     } catch (err) {
-        console.error(err);
-        setMessage('Something went wrong. Try again later.');
-        setMessageType('error');
+      // 4. Handle all errors
+      // err.message will be "Invalid or expired token."
+      console.error(err);
+      setMessage(err.message || 'Something went wrong. Try again later.');
+      setMessageType('error');
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-    };
+  };
 
 
   const handleBackToLogin = () => navigate('/login');
@@ -90,7 +89,7 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen relative overflow-hidden font-sans">
       {/* Background image top half */}
-      <div 
+      <div
         className="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
@@ -103,10 +102,9 @@ const ResetPassword = () => {
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero text */}
-        <div 
-          className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${
-            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
+        <div
+          className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
           data-section="hero"
         >
           <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">
@@ -118,10 +116,9 @@ const ResetPassword = () => {
         </div>
 
         {/* Form */}
-        <div 
-          className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${
-            isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
+        <div
+          className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
           data-section="form"
           style={{ transitionDelay: '300ms' }}
         >
@@ -132,11 +129,10 @@ const ResetPassword = () => {
 
             {/* Message display */}
             {message && (
-              <div className={`mb-6 p-4 rounded-lg text-sm sm:text-base ${
-                messageType === 'success' 
-                  ? 'bg-green-50 text-green-700 border border-green-200' 
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
+              <div className={`mb-6 p-4 rounded-lg text-sm sm:text-base ${messageType === 'success'
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
                 {message}
               </div>
             )}
@@ -184,7 +180,7 @@ const ResetPassword = () => {
 
               <div className="text-center text-xs sm:text-sm text-gray-600 pt-2">
                 Remember your password?{' '}
-                <button 
+                <button
                   type="button"
                   onClick={handleBackToLogin}
                   className="text-yellow-500 hover:text-yellow-600 font-semibold hover:underline transition-all"

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DynamicNavigation from '../components/dynamicNavbar';
 import bgImage from '../assets/MAIN4.png';
 import { useNavigate } from 'react-router-dom';
+// 1. Import the service function
+import { requestPasswordReset } from '../services/authService';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -27,7 +29,7 @@ const ForgotPassword = () => {
           }
         });
       },
-      { 
+      {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
       }
@@ -46,35 +48,26 @@ const ForgotPassword = () => {
     setIsVisible(prev => ({ ...prev, hero: true }));
   }, []);
 
+  //
+  // --- THIS IS THE Forgot Password FUNCTION ---
+  //
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5143/api/forgot-password/request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          Email: email,
-        }),
-      });
+      // 2. Call the service function
+      const data = await requestPasswordReset(email);
 
-      if (response.ok) {
-        // Remove the unused data variable
-        await response.json(); // Just consume the response
-        setMessage('Password reset instructions have been sent to your email.');
-        setMessageType('success');
-        setEmail(''); // Clear the form
-      } else {
-        const error = await response.text();
-        setMessage(error || 'Failed to send reset instructions. Please try again.');
-        setMessageType('error');
-      }
+      // 3. Handle the success message from the backend
+      // data.message = "If an account with that email exists..."
+      setMessage(data.message);
+      setMessageType('success');
+      setEmail(''); // Clear the form
     } catch (err) {
-      setMessage('Something went wrong. Please try again later.');
+      // 4. Handle all errors from the service
+      setMessage(err.message || 'Something went wrong. Please try again later.');
       setMessageType('error');
       console.error(err);
     } finally {
@@ -86,12 +79,13 @@ const ForgotPassword = () => {
     navigate('/login');
   };
 
+
   return (
     <div className="min-h-screen relative overflow-hidden font-sans">
       {/* Upper half with background image */}
-      <div 
+      <div
         className="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center bg-no-repeat"
-        style={{ 
+        style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center'
@@ -99,16 +93,15 @@ const ForgotPassword = () => {
       />
       {/* Lower half with white background */}
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-white" />
-      
+
       <div className="absolute w-full z-50">
         <DynamicNavigation />
       </div>
-      
+
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div 
-          className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${
-            isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
+        <div
+          className={`text-center mb-8 sm:mb-12 mt-16 sm:mt-20 transition-all duration-1000 ${isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
           data-section="hero"
         >
           <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">Forgot Password?</h1>
@@ -119,11 +112,10 @@ const ForgotPassword = () => {
             instructions to reset your password.
           </p>
         </div>
-        
-        <div 
-          className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${
-            isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
+
+        <div
+          className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${isVisible.form ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
           data-section="form"
           style={{ transitionDelay: '300ms' }}
         >
@@ -134,15 +126,14 @@ const ForgotPassword = () => {
 
             {/* Message display */}
             {message && (
-              <div className={`mb-6 p-4 rounded-lg text-sm sm:text-base ${
-                messageType === 'success' 
-                  ? 'bg-green-50 text-green-700 border border-green-200' 
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
+              <div className={`mb-6 p-4 rounded-lg text-sm sm:text-base ${messageType === 'success'
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
                 {message}
               </div>
             )}
-          
+
             <form onSubmit={handleResetPassword} className="space-y-5 sm:space-y-6">
               <div>
                 <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2">
@@ -159,7 +150,7 @@ const ForgotPassword = () => {
                   disabled={isLoading}
                 />
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isLoading}
@@ -167,10 +158,10 @@ const ForgotPassword = () => {
               >
                 {isLoading ? 'Sending...' : 'Send Reset Instructions'}
               </button>
-              
+
               <div className="text-center text-xs sm:text-sm text-gray-600 pt-2">
                 Remember your password?{' '}
-                <button 
+                <button
                   type="button"
                   onClick={handleBackToLogin}
                   className="text-yellow-500 hover:text-yellow-600 font-semibold hover:underline transition-all"

@@ -4,6 +4,9 @@ import bgImage from "../assets/MAIN4.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+// 1. Import the login function from your service
+// We rename it to 'apiLogin' to avoid a name conflict with 'login' from useAuth
+import { login as apiLogin } from "../services/authService";
 
 const WelcomeLogin = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +17,7 @@ const WelcomeLogin = () => {
     form: false,
   });
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuth(); // This is your context login, e.g., for setting the token
   const { showSuccess, showError } = useToast();
 
   // Intersection Observer for scroll animations
@@ -49,24 +52,24 @@ const WelcomeLogin = () => {
     setIsVisible((prev) => ({ ...prev, hero: true }));
   }, []);
 
+  //
+  // --- THIS IS THE SIGN-IN FUNCTION ---
+  //
   const handleSignIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Client-side validation - Replace all alert() calls
+    // ... (Your client-side validation stays exactly the same) ...
     if (!email.trim()) {
       showError("Email Required: Please enter your email address to sign in.");
       setIsLoading(false);
       return;
     }
-
     if (!password.trim()) {
       showError("Password Required: Please enter your password to sign in.");
       setIsLoading(false);
       return;
     }
-
-    // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       showError("Invalid Email Format: Please enter a valid email address (example: user@example.com).");
@@ -75,52 +78,31 @@ const WelcomeLogin = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5143/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          Email: email,
-          Password: password,
-        }),
-      });
+      // 2. Call your new 'apiLogin' service.
+      // It sends {email, password} (camelCase) to '/api/auth/login'
+      const data = await apiLogin({ email, password });
 
-      if (response.ok) {
-        const data = await response.json();
+      // 3. Handle the successful response data
+      // data = { token, role, userName }
+      login(data.token); // This is the login() from your useAuth context
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("username", data.userName);
 
-        // Save role and token
-        login(data.token);
-        localStorage.setItem("role", data.role); // store user role locally
-        localStorage.setItem("username", data.userName);
+      showSuccess(`Welcome back, ${data.userName}!`);
 
-        showSuccess(`Welcome back, ${data.userName}!`);
-
-        // Role-based navigation
-        setTimeout(() => {
-          if (data.role === 1) {
-            navigate("/admin");
-          } else {
-            navigate("/home");
-          }
-        }, 1000);
-      }
-      else {
-        const status = response.status;
-        let message = "We encountered an issue while signing you in. Please try again.";
-
-        if (status === 401 || status === 400) {
-          message = "Invalid Credentials: The email or password you entered is incorrect.";
-        } else if (status === 404) {
-          message = "Account Not Found: No account found with this email address.";
-        } else if (status >= 500) {
-          message = "Server Error: Our servers are experiencing issues. Please try again in a few minutes.";
+      // 4. Role-based navigation
+      setTimeout(() => {
+        if (data.role === 1) { // 1 is Admin
+          navigate("/admin");
+        } else {
+          navigate("/home");
         }
+      }, 1000);
 
-        showError(message);
-      }
     } catch (err) {
-      showError("Connection Error: We're having trouble connecting to our servers. Please check your internet connection and try again.");
+      // 5. Handle all errors from the middleware
+      // err.message will be "Invalid Email or password."
+      showError(err.message);
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
