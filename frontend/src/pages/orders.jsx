@@ -65,16 +65,12 @@ const OrdersPage = () => {
       // 2. Use the service function
       const fetchedOrders = await getOrdersByUserId(currentUserId);
 
-      console.log('API Response:', fetchedOrders); // Check this log in your browser console!
+      console.log('API Response:', fetchedOrders);
 
-      // 3. Map the DTO response
+      // 3. Map the DTO response (backend structure already matches OrderDto)
       const mappedOrders = fetchedOrders.map(order => {
-        // FIX: Use the likely PascalCase name from the backend DTO
-        const firstItemName = order.orderItems?.[0]?.itemName ?? 'Unknown Item'; // Changed ItemName to itemName
+        const firstItemName = order.orderItems?.[0]?.itemName ?? 'Unknown Item';
         const totalQuantity = order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
-
-        // Debug log inside map
-        console.log(`Order ID ${order.orderId}, First Item Object:`, order.orderItems?.[0], `Resolved Name: ${firstItemName}`);
 
         return {
           id: order.orderId,
@@ -411,4 +407,3 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
-
