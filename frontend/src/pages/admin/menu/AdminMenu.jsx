@@ -5,8 +5,8 @@ import bgImage from '../../../assets/MAIN4.png';
 import bowlImage from '../../../assets/BOWL.png';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../context/ToastContext'; // Import useToast
-// 1. Import menu service functions
-import { getAllMenuItems, getAllCategories, deleteMenuItem, updateMenuItem } from '../../../services/menuService';
+// 1. Import menu service functions (UPDATED)
+import { getAllAdminMenuItems, getAllCategories, deleteMenuItem, updateMenuItem } from '../../../services/menuService';
 import { API_BASE_URL } from '../../../apiConfig'; // Import base URL for images
 
 const AdminMenu = () => {
@@ -48,7 +48,9 @@ const AdminMenu = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllMenuItems(); // Fetches array of MenuItemDto
+      // --- FIX: Call the new admin function ---
+      const data = await getAllAdminMenuItems(); // Fetches array of MenuItemDto
+      // ------------------------------------
 
       // Map backend data (MenuItemDto) directly, look up category name
       const formattedData = data.map((item) => {
@@ -562,3 +564,4 @@ const AdminMenu = () => {
 };
 
 export default AdminMenu;
+

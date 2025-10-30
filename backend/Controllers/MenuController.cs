@@ -22,6 +22,18 @@ namespace backend.Controllers
 
         // --- ADMIN-ONLY ENDPOINTS ---
 
+        // --- Get ALL Food Items, available and not, ENDPOINT ---
+        [HttpGet("admin/all")] // New route: /api/menu/admin/all
+        [Authorize(Roles = "Admin")] // Protected!
+        public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetAllAdminItems()
+        {
+            _logger.LogInformation("Received admin request to get ALL menu items.");
+            // Call the new service method that gets all items (active and inactive)
+            var items = await _menuService.GetAllAdminItemsAsync();
+            return Ok(items);
+        }
+        // ------------------------------
+
         [HttpPost]
         [Authorize(Roles = "Admin")] // Protected!
         public async Task<ActionResult<MenuItemDto>> CreateMenuItem([FromForm] MenuItemCreateDto dto)
@@ -122,4 +134,3 @@ namespace backend.Controllers
         }
     }
 }
-

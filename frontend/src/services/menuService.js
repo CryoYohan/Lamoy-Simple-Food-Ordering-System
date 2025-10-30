@@ -36,6 +36,17 @@ export const getAllMenuItems = async () => {
 };
 
 /**
+ * Fetches *all* menu items (active and inactive). (Admin Only)
+ */
+export const getAllAdminMenuItems = async () => {
+    const response = await fetch(`${API_BASE_URL}/menu/admin/all`, {
+        method: 'GET',
+        headers: getAuthHeaders(), // Requires admin auth token
+    });
+    return handleResponse(response);
+};
+
+/**
  * Fetches all menu categories. (Public)
  */
 export const getAllCategories = async () => {
@@ -98,3 +109,4 @@ export const deleteMenuItem = async (itemId) => {
     // DELETE requests often return 204 No Content on success
     return handleResponse(response);
 };
+

@@ -63,9 +63,9 @@ namespace backend.Services
                 }
                 catch (Exception ex)
                 {
-                     _logger.LogError(ex, "Error saving image for menu item {Name}", dto.Name);
-                     // Decide if image error should prevent item creation or just save without image
-                     throw new InvalidOperationException("Failed to save image.", ex);
+                    _logger.LogError(ex, "Error saving image for menu item {Name}", dto.Name);
+                    // Decide if image error should prevent item creation or just save without image
+                    throw new InvalidOperationException("Failed to save image.", ex);
                 }
             }
 
@@ -146,8 +146,8 @@ namespace backend.Services
             // Optional: Delete associated image file from wwwroot/uploads
             // try {
             //     if (!string.IsNullOrEmpty(itemToDelete.ImageUrl)) {
-            //          _fileStorageService.DeleteFile(itemToDelete.ImageUrl); // Assuming FileStorageService has a Delete method
-            //          _logger.LogInformation("Deleted image file {ImageUrl} for item {ItemId}", itemToDelete.ImageUrl, id);
+            //         _fileStorageService.DeleteFile(itemToDelete.ImageUrl); // Assuming FileStorageService has a Delete method
+            //         _logger.LogInformation("Deleted image file {ImageUrl} for item {ItemId}", itemToDelete.ImageUrl, id);
             //     }
             // } catch (Exception ex) {
             //      _logger.LogError(ex, "Error deleting image file {ImageUrl} for item {ItemId}", itemToDelete.ImageUrl, id);
@@ -165,6 +165,17 @@ namespace backend.Services
             var items = await _menuRepository.GetAllAvailableItemsAsync();
             return items.Select(MapToMenuItemDto); // Map each item to a DTO
         }
+
+        // --- ADD GET ALL MENU ITEMS METHOD FOR ADMIN ---
+        public async Task<IEnumerable<MenuItemDto>> GetAllAdminItemsAsync()
+        {
+            _logger.LogInformation("Fetching ALL menu items for admin");
+            // Call the new repository method
+            var items = await _menuRepository.GetAllAdminItemsAsync(); 
+            // Map using the standard helper (no CategoryName needed)
+            return items.Select(MapToMenuItemDto); 
+        }
+        // --------------------------------
 
         public async Task<IEnumerable<MenuCategoryDto>> GetAllCategoriesAsync()
         {

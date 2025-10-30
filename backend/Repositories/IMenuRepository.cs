@@ -8,6 +8,7 @@ namespace backend.Repositories
         Task<MenuItem> CreateMenuItemAsync(MenuItem newItem);
 
         Task<IEnumerable<MenuItem>> GetAllAvailableItemsAsync();
+        Task<IEnumerable<MenuItem>> GetAllAdminItemsAsync(); // 
         Task<IEnumerable<MenuCategory>> GetAllCategoriesAsync();
         Task<IEnumerable<MenuItem>> GetAvailableItemsByCategoryIdAsync(int categoryId);
         Task<IEnumerable<MenuItem>> SearchAvailableItemsAsync(string query);
@@ -17,3 +18,4 @@ namespace backend.Repositories
         Task DeleteMenuItemAsync(MenuItem itemToDelete); 
     }
 }
+

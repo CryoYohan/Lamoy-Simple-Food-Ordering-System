@@ -33,6 +33,17 @@ namespace backend.Repositories
                 .ToListAsync();
         }
 
+        // --- ADD NEW METHOD FOR ADMIN ---
+        public async Task<IEnumerable<MenuItem>> GetAllAdminItemsAsync()
+        {
+            return await _context.MenuItems
+                // NO .Where(mi => mi.IsAvailable) filter
+                .Include(mi => mi.MenuCategory) // Eager load category data for admin view
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        // ---------------------------------
+
         public async Task<IEnumerable<MenuCategory>> GetAllCategoriesAsync()
         {
             return await _context.MenuCategories
@@ -54,8 +65,8 @@ namespace backend.Repositories
             // Use Contains for broader matching, ensure case insensitivity if DB is case-sensitive
             return await _context.MenuItems
                 .Where(mi => mi.IsAvailable &&
-                      (mi.Name.ToLower().Contains(lowerQuery) || // Example case insensitivity
-                       (mi.Description != null && mi.Description.ToLower().Contains(lowerQuery))))
+                        (mi.Name.ToLower().Contains(lowerQuery) || // Example case insensitivity
+                         (mi.Description != null && mi.Description.ToLower().Contains(lowerQuery))))
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -80,3 +91,4 @@ namespace backend.Repositories
         }
     }
 }
+
