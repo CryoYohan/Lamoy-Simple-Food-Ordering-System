@@ -11,5 +11,8 @@ namespace backend.Services
         Task<IEnumerable<MenuCategoryDto>> GetAllCategoriesAsync();
         Task<IEnumerable<MenuItemDto>> GetAvailableItemsByCategoryIdAsync(int categoryId);
         Task<IEnumerable<MenuItemDto>> SearchAvailableItemsAsync(string query);
+        Task<MenuItemDto> GetMenuItemByIdAsync(int id);
+        Task DeleteMenuItemAsync(int id);
     }
 }
+

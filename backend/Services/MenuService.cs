@@ -2,7 +2,7 @@ using backend.DTOs.admin;
 using backend.DTOs.Menu;
 using backend.Models;
 using backend.Repositories;
-using Microsoft.Extensions.Logging; 
+using Microsoft.Extensions.Logging;
 
 namespace backend.Services
 {
@@ -10,7 +10,7 @@ namespace backend.Services
     {
         private readonly IMenuRepository _menuRepository;
         private readonly IFileStorageService _fileStorageService;
-        private readonly ILogger<MenuService> _logger; 
+        private readonly ILogger<MenuService> _logger;
 
         public MenuService(IMenuRepository menuRepository, IFileStorageService fileStorageService, ILogger<MenuService> logger)
         {
@@ -18,6 +18,26 @@ namespace backend.Services
             _fileStorageService = fileStorageService;
             _logger = logger;
         }
+
+        // --- ADD/CONFIRM GetMenuItemByIdAsync ---
+        public async Task<MenuItemDto> GetMenuItemByIdAsync(int id)
+        {
+            _logger.LogInformation("Fetching menu item by ID: {ItemId}", id);
+            // Use the repository method that gets a tracked entity if you plan to update immediately after,
+            // or use a non-tracked one if just viewing. Let's assume GetItemByIdAsync might track.
+            var item = await _menuRepository.GetItemByIdAsync(id);
+
+            if (item == null)
+            {
+                _logger.LogWarning("Menu item with ID {ItemId} not found.", id);
+                throw new KeyNotFoundException("Menu item not found.");
+            }
+
+             _logger.LogInformation("Successfully fetched menu item {ItemId}.", id);
+            return MapToMenuItemDto(item); // Use the existing mapping helper
+        }
+        // ------------------------------------
+
 
         public async Task<MenuItemDto> CreateMenuItemAsync(MenuItemCreateDto dto)
         {
@@ -36,8 +56,17 @@ namespace backend.Services
             if (dto.Image != null && dto.Image.Length > 0)
             {
                 _logger.LogInformation("Uploading image for new menu item {Name}", dto.Name);
-                imageUrl = await _fileStorageService.SaveFileAsync(dto.Image, "uploads");
-                _logger.LogInformation("Image saved at {ImageUrl}", imageUrl);
+                try
+                {
+                    imageUrl = await _fileStorageService.SaveFileAsync(dto.Image, "uploads");
+                    _logger.LogInformation("Image saved at {ImageUrl}", imageUrl);
+                }
+                catch (Exception ex)
+                {
+                     _logger.LogError(ex, "Error saving image for menu item {Name}", dto.Name);
+                     // Decide if image error should prevent item creation or just save without image
+                     throw new InvalidOperationException("Failed to save image.", ex);
+                }
             }
 
             // 3. Create Model
@@ -53,7 +82,7 @@ namespace backend.Services
 
             // 4. Save to DB
             var createdItem = await _menuRepository.CreateMenuItemAsync(newItem);
-            
+
             _logger.LogInformation("Menu item {Name} created successfully with ID {ItemId}", createdItem.Name, createdItem.ItemId);
 
             // 5. Return DTO
@@ -64,7 +93,7 @@ namespace backend.Services
         {
             _logger.LogInformation("Attempting to update menu item with ID: {ItemId}", id);
 
-            // 1. Get existing item
+            // 1. Get existing item (EF Core tracks this entity)
             var existingItem = await _menuRepository.GetItemByIdAsync(id);
             if (existingItem == null)
             {
@@ -72,30 +101,74 @@ namespace backend.Services
                 throw new KeyNotFoundException("Menu item not found.");
             }
 
-            // 2. Map updated fields
+             // Optional: Validate CategoryId exists if it's being changed
+             // var categoryExists = await _menuRepository.CategoryExistsByIdAsync(dto.CategoryId);
+             // if (!categoryExists) throw new InvalidOperationException("Invalid Category ID provided.");
+
+
+            // 2. Map updated fields onto the tracked entity
             existingItem.Name = dto.Name;
             existingItem.Description = dto.Description;
             existingItem.Price = dto.Price;
+            // Handle ImageUrl update: If dto.ImageUrl is explicitly provided, use it.
+            // If it's omitted or null maybe keep the existing one? Decide update logic.
+            // For simplicity here, we assume the DTO provides the desired final URL or null.
             existingItem.ImageUrl = dto.ImageUrl;
             existingItem.CategoryId = dto.CategoryId;
             existingItem.IsAvailable = dto.IsAvailable;
 
-            // 3. Save changes
+            // 3. Save changes (EF Core detects changes on the tracked entity)
             await _menuRepository.UpdateMenuItemAsync();
-            
+
             _logger.LogInformation("Menu item {ItemId} updated successfully.", id);
         }
+
+        // --- ADD DeleteMenuItemAsync IMPLEMENTATION ---
+        public async Task DeleteMenuItemAsync(int id)
+        {
+            _logger.LogInformation("Attempting to delete menu item with ID: {ItemId}", id);
+
+            // 1. Get the item to ensure it exists before deleting
+            var itemToDelete = await _menuRepository.GetItemByIdAsync(id);
+            if (itemToDelete == null)
+            {
+                _logger.LogWarning("Failed to delete: Menu item with ID {ItemId} not found.", id);
+                throw new KeyNotFoundException("Menu item not found.");
+            }
+
+            // Optional: Add business logic here. E.g., check if the item is part of any non-completed orders?
+            // If so, maybe prevent deletion or mark as unavailable instead.
+            // For now, we proceed with direct deletion.
+
+            // 2. Call the repository to delete the item
+            await _menuRepository.DeleteMenuItemAsync(itemToDelete);
+
+            // Optional: Delete associated image file from wwwroot/uploads
+            // try {
+            //     if (!string.IsNullOrEmpty(itemToDelete.ImageUrl)) {
+            //          _fileStorageService.DeleteFile(itemToDelete.ImageUrl); // Assuming FileStorageService has a Delete method
+            //          _logger.LogInformation("Deleted image file {ImageUrl} for item {ItemId}", itemToDelete.ImageUrl, id);
+            //     }
+            // } catch (Exception ex) {
+            //      _logger.LogError(ex, "Error deleting image file {ImageUrl} for item {ItemId}", itemToDelete.ImageUrl, id);
+            //      // Don't throw - deleting the item record is the main goal
+            // }
+
+
+            _logger.LogInformation("Menu item {ItemId} deleted successfully.", id);
+        }
+        // ------------------------------------------
 
         public async Task<IEnumerable<MenuItemDto>> GetAllAvailableItemsAsync()
         {
             _logger.LogInformation("Fetching all available menu items");
             var items = await _menuRepository.GetAllAvailableItemsAsync();
-            return items.Select(MapToMenuItemDto);
+            return items.Select(MapToMenuItemDto); // Map each item to a DTO
         }
 
         public async Task<IEnumerable<MenuCategoryDto>> GetAllCategoriesAsync()
         {
-             _logger.LogInformation("Fetching all menu categories");
+            _logger.LogInformation("Fetching all menu categories");
             var categories = await _menuRepository.GetAllCategoriesAsync();
             return categories.Select(c => new MenuCategoryDto { CategoryId = c.CategoryId, Name = c.Name });
         }
@@ -114,7 +187,7 @@ namespace backend.Services
                 _logger.LogWarning("Search failed: Query parameter was empty or whitespace.");
                 throw new InvalidOperationException("Query parameter is required.");
             }
-            
+
             _logger.LogInformation("Searching for menu items with query: {Query}", query);
             var items = await _menuRepository.SearchAvailableItemsAsync(query);
             return items.Select(MapToMenuItemDto);
@@ -137,3 +210,4 @@ namespace backend.Services
         }
     }
 }
+

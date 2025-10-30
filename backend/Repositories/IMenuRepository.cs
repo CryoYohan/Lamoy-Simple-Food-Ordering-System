@@ -11,8 +11,9 @@ namespace backend.Repositories
         Task<IEnumerable<MenuCategory>> GetAllCategoriesAsync();
         Task<IEnumerable<MenuItem>> GetAvailableItemsByCategoryIdAsync(int categoryId);
         Task<IEnumerable<MenuItem>> SearchAvailableItemsAsync(string query);
-        
-        Task<MenuItem?> GetItemByIdAsync(int id);
-        Task UpdateMenuItemAsync(); // EF Core tracks changes, so we just need to save
+
+        Task<MenuItem?> GetItemByIdAsync(int id); // Gets tracked entity suitable for updates/deletes
+        Task UpdateMenuItemAsync(); // Saves changes on a tracked entity
+        Task DeleteMenuItemAsync(MenuItem itemToDelete); 
     }
 }
