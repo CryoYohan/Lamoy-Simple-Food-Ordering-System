@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
         ...data,
         // As a safeguard, you can explicitly ensure the role from the token is kept
         // This line is optional if you trust prevUser, but good for safety:
-        role: prevUser.role || data.role,
+        role: prevUser.role || data.role, 
       }));
 
     } catch (err) {
