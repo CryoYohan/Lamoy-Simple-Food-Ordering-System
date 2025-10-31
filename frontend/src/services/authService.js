@@ -1,4 +1,6 @@
 import { API_BASE_URL } from '../apiConfig'; // Adjust the path '..' as needed
+// 1. Import the authenticated header helper
+import { getAuthHeaders } from '../utils/authUtils';
 
 /**
  * A helper function to handle API responses and errors.
@@ -6,7 +8,7 @@ import { API_BASE_URL } from '../apiConfig'; // Adjust the path '..' as needed
  */
 const handleResponse = async (response) => {
     if (response.ok) {
-        // For 200 OK responses (like login) or 201 Created
+        // Handle successful responses (200 OK, 201 Created, 204 No Content)
         // If the response body is empty (like a 204 No Content), return an empty object
         const text = await response.text();
         return text ? JSON.parse(text) : {};
@@ -74,3 +76,30 @@ export const resetPassword = async (token, newPassword) => {
     });
     return handleResponse(response);
 };
+
+// --- 2. ADD NEW PROFILE FUNCTIONS ---
+
+/**
+ * Fetches the profile for the currently logged-in user.
+ */
+export const getUserProfile = async () => {
+    const response = await fetch(`${API_BASE_URL}/user/profile`, {
+        method: 'GET',
+        headers: getAuthHeaders(), // Requires auth token
+    });
+    return handleResponse(response);
+};
+
+/**
+ * Updates the profile for the currently logged-in user.
+ * @param {object} profileData - { fullName, phoneNumber, address }
+ */
+export const updateUserProfile = async (profileData) => {
+    const response = await fetch(`${API_BASE_URL}/user/profile`, {
+        method: 'PUT',
+        headers: getAuthHeaders(), // Requires auth token
+        body: JSON.stringify(profileData),
+    });
+    return handleResponse(response);
+};
+
