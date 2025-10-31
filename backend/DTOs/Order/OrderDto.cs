@@ -6,6 +6,7 @@ namespace backend.DTOs.Order
     {
         public int OrderId { get; set; }
         public int UserId { get; set; }
+        public string UserName { get; set; } = string.Empty; 
         public decimal TotalPrice { get; set; }
         public OrderStatus Status { get; set; }
         public DateTime OrderDate { get; set; }

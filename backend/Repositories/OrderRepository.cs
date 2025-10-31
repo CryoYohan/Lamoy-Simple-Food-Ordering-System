@@ -35,16 +35,33 @@ namespace backend.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+        
+        // --- ADD NEW METHOD FOR ADMIN ---
+        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+        {
+            return await _context.Orders
+                .Include(o => o.User) // Include the User details
+                .Include(o => o.OrderItems.OrderBy(oi => oi.OrderItemId))
+                    .ThenInclude(oi => oi.MenuItem) // Include the items in the order
+                .OrderByDescending(o => o.OrderDate) // Show newest orders first
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        // ---------------------------------
 
         public async Task<Order?> GetOrderByIdAsync(int orderId)
         {
             // This gets a tracked entity, which is good for updates (like cancelling)
-            return await _context.Orders.FindAsync(orderId);
+            // We need to include the User for the security check
+            return await _context.Orders
+                .Include(o => o.User) 
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
 
         public async Task<Order?> GetOrderByIdWithItemsAsync(int orderId)
         {
             return await _context.Orders
+                .Include(o => o.User) // Include User
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
                 .AsNoTracking()

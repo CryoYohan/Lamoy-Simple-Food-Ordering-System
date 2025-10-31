@@ -8,6 +8,7 @@ namespace backend.Repositories
         Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId);
         Task<Order?> GetOrderByIdAsync(int orderId);
         Task<Order?> GetOrderByIdWithItemsAsync(int orderId);
+        Task<IEnumerable<Order>> GetAllOrdersAsync(); // Get all orders
         Task SaveChangesAsync();
     }
 }

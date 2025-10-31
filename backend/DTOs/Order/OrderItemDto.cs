@@ -8,5 +8,6 @@ namespace backend.DTOs.Order
         public string ItemName { get; set; } = string.Empty;
         public int ItemId { get; set; }
         public string? Description { get; set; }
+        public string? ImageUrl { get; set; } 
     }
 }

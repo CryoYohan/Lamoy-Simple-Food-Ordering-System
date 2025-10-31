@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../apiConfig';
 import { getAuthHeaders } from '../utils/authUtils';
-import { handleResponse } from './apiUtils';
+import { handleResponse } from './apiUtils'; // Assumes apiUtils.js exists
 
 /**
  * Creates a new order (checkout). (Requires Auth Token)
@@ -56,6 +56,34 @@ export const cancelOrder = async (orderId) => {
         // No body needed for this request
     });
     // Returns { message: "..." } on success
+    return handleResponse(response);
+};
+
+// --- NEW ADMIN FUNCTIONS ---
+
+/**
+ * Fetches *all* orders (active and inactive). (Admin Only)
+ */
+export const getAllAdminOrders = async () => {
+    const response = await fetch(`${API_BASE_URL}/orders/admin/all`, {
+        method: 'GET',
+        headers: getAuthHeaders(), // Requires admin auth token
+    });
+    return handleResponse(response);
+};
+
+/**
+ * Updates the status of an existing order. (Admin Only)
+ * @param {number} orderId - The ID of the item to update.
+ * @param {object} statusData - The { status: number } payload.
+ */
+export const updateOrderStatus = async (orderId, statusData) => {
+    const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: getAuthHeaders(), // Use authenticated headers
+        body: JSON.stringify(statusData), // e.g., { "status": 2 }
+    });
+    // Returns the full updated OrderDto on success
     return handleResponse(response);
 };
 
