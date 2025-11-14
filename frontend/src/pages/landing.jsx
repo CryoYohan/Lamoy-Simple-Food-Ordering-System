@@ -14,6 +14,8 @@ import adoboImage from '../assets/ADOBO.jpg';
 const Landing = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isSliding, setIsSliding] = useState(false);
+  const [slideDirection, setSlideDirection] = useState('next');
   const [isVisible, setIsVisible] = useState({
     hero: false,
     carousel: false,
@@ -64,11 +66,23 @@ const Landing = () => {
   ];
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % foods.length);
+    if (isSliding) return;
+    setIsSliding(true);
+    setSlideDirection('next');
+    setTimeout(() => {
+      setCurrentSlide((prev) => (prev + 1) % foods.length);
+      setIsSliding(false);
+    }, 300);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + foods.length) % foods.length);
+    if (isSliding) return;
+    setIsSliding(true);
+    setSlideDirection('prev');
+    setTimeout(() => {
+      setCurrentSlide((prev) => (prev - 1 + foods.length) % foods.length);
+      setIsSliding(false);
+    }, 300);
   };
 
   // Helper function to get previous and next food items
@@ -130,7 +144,8 @@ const Landing = () => {
             {/* Navigation arrows */}
             <button
               onClick={prevSlide}
-              className="absolute left-2 sm:left-4 md:left-8 lg:left-32 top-1/3 transform -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 z-20"
+              disabled={isSliding}
+              className="absolute left-2 sm:left-4 md:left-8 lg:left-32 top-1/3 transform -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 z-20"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -139,7 +154,8 @@ const Landing = () => {
 
             <button
               onClick={nextSlide}
-              className="absolute right-2 sm:right-4 md:right-8 lg:right-32 top-1/3 transform -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 z-20"
+              disabled={isSliding}
+              className="absolute right-2 sm:right-4 md:right-8 lg:right-32 top-1/3 transform -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 z-20"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -148,49 +164,65 @@ const Landing = () => {
 
             {/* Carousel Container */}
             <div className="relative">
-              {/* Main center plate - Current food */}
-              <div className="relative z-10 w-[18rem] h-[18rem] sm:w-[22rem] sm:h-[22rem] md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] bg-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-700 ease-in-out">
-                <img
-                  src={getCurrentFood().image}
+              {/* Main center plate - Current food with animations */}
+              <div className="relative z-10 w-[18rem] h-[18rem] sm:w-[22rem] sm:h-[22rem] md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] bg-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-700 ease-in-out overflow-hidden">
+                <img 
+                  src={getCurrentFood().image} 
                   alt={getCurrentFood().name}
-                  className="w-[16rem] h-[16rem] sm:w-[20rem] sm:h-[20rem] md:w-[26rem] md:h-[26rem] lg:w-[30rem] lg:h-[30rem] object-contain transition-all duration-700 ease-in-out transform"
-                  style={{
-                    transform: 'scale(1)',
-                    opacity: 1
-                  }}
+                  className={`w-[16rem] h-[16rem] sm:w-[20rem] sm:h-[20rem] md:w-[26rem] md:h-[26rem] lg:w-[30rem] lg:h-[30rem] object-contain transition-all duration-500 ease-out ${
+                    isSliding 
+                      ? slideDirection === 'next' 
+                        ? 'opacity-0 scale-75 -translate-x-full' 
+                        : 'opacity-0 scale-75 translate-x-full'
+                      : 'opacity-100 scale-100 translate-x-0'
+                  }`}
                   key={currentSlide}
                 />
               </div>
 
-              {/* Left side dish - Previous food */}
-              <div className="absolute left-[-50px] sm:left-[-60px] md:left-[-70px] lg:left-[-90px] top-1/2 transform -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white rounded-full shadow-lg flex items-center justify-center z-5 transition-all duration-700 ease-in-out">
-                <img
-                  src={getPrevFood().image}
+              {/* Left side dish - Previous food with hover scale */}
+              <div className="absolute left-[-50px] sm:left-[-60px] md:left-[-70px] lg:left-[-90px] top-1/2 transform -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white rounded-full shadow-lg flex items-center justify-center z-5 transition-all duration-500 ease-in-out hover:scale-110 cursor-pointer"
+                onClick={prevSlide}
+              >
+                <img 
+                  src={getPrevFood().image} 
                   alt={getPrevFood().name}
-                  className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 object-contain opacity-80 transition-all duration-700 ease-in-out"
+                  className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 object-contain opacity-80 hover:opacity-100 transition-all duration-500 ease-in-out"
                 />
               </div>
 
-              {/* Right side dish - Next food */}
-              <div className="absolute right-[-50px] sm:right-[-60px] md:right-[-70px] lg:right-[-90px] top-1/2 transform -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white rounded-full shadow-lg flex items-center justify-center z-5 transition-all duration-700 ease-in-out">
-                <img
-                  src={getNextFood().image}
+              {/* Right side dish - Next food with hover scale */}
+              <div className="absolute right-[-50px] sm:right-[-60px] md:right-[-70px] lg:right-[-90px] top-1/2 transform -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 bg-white rounded-full shadow-lg flex items-center justify-center z-5 transition-all duration-500 ease-in-out hover:scale-110 cursor-pointer"
+                onClick={nextSlide}
+              >
+                <img 
+                  src={getNextFood().image} 
                   alt={getNextFood().name}
-                  className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 object-contain opacity-80 transition-all duration-700 ease-in-out"
+                  className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 object-contain opacity-80 hover:opacity-100 transition-all duration-500 ease-in-out"
                 />
               </div>
             </div>
 
-            {/* Carousel indicators - 3 circles at bottom for navigation */}
+            {/* Carousel indicators - Enhanced with transitions */}
             <div className="absolute bottom-[-60px] sm:bottom-[-70px] md:bottom-[-80px] left-1/2 transform -translate-x-1/2 flex space-x-3 sm:space-x-4">
               {foods.map((food, index) => (
                 <button
                   key={food.id}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all duration-300 ${currentSlide === index
-                    ? 'bg-white shadow-lg scale-125'
-                    : 'bg-white/50 hover:bg-white/70 hover:scale-110'
-                    }`}
+                  onClick={() => {
+                    if (isSliding || index === currentSlide) return;
+                    setIsSliding(true);
+                    setSlideDirection(index > currentSlide ? 'next' : 'prev');
+                    setTimeout(() => {
+                      setCurrentSlide(index);
+                      setIsSliding(false);
+                    }, 300);
+                  }}
+                  disabled={isSliding || index === currentSlide}
+                  className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all duration-300 ${
+                    currentSlide === index 
+                      ? 'bg-white shadow-lg scale-125' 
+                      : 'bg-white/50 hover:bg-white/70 hover:scale-110'
+                  } ${isSliding ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 />
               ))}
             </div>

@@ -106,14 +106,14 @@ const AdminEditMenu = () => {
 
   // Trigger fetch on load/auth change
   useEffect(() => {
+    if (!authIsLoading && !isAuthenticated) {
+      navigate('/login', { replace: true });
+      return;
+    }
     if (!authIsLoading && isAuthenticated && itemId) {
       fetchData();
     }
-    if (!authIsLoading && !isAuthenticated) {
-      showError("Please log in to manage menu items.");
-      navigate('/login', { replace: true });
-    }
-  }, [authIsLoading, isAuthenticated, itemId, fetchData, navigate, showError]);
+  }, [authIsLoading, isAuthenticated, itemId, fetchData, navigate]);
 
   // --- Animation Observers ---
   useEffect(() => {

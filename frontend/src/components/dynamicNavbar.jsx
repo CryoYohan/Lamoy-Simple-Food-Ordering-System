@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import logo from "../assets/LOGO2.png";
 
 const DynamicNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
+  const { showSuccess } = useToast()
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -79,6 +81,7 @@ const DynamicNavigation = () => {
 
   const handleLogout = () => {
     logout();
+    showSuccess("You have been successfully logged out!"); // Add toast notification
     navigate("/");
     setIsProfileDropdownOpen(false);
   };
@@ -129,6 +132,7 @@ const DynamicNavigation = () => {
 
   const handleLogoutMobile = () => {
     logout();
+    showSuccess("You have been successfully logged out!"); // Add toast notification
     navigate("/");
     closeMobileMenu();
   };

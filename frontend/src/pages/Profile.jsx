@@ -82,16 +82,15 @@ const ProfilePage = () => {
   useEffect(() => {
     if (!authIsLoading) {
       if (!isAuthenticated) {
-        showError('Please log in to view your profile.');
         navigate('/login', { replace: true });
         return;
       }
-      // 3. Call fetchProfile without ID, just check if authenticated
+      // Call fetchProfile without ID, just check if authenticated
       if (isAuthenticated) {
         fetchProfile();
       }
     }
-  }, [isAuthenticated, authIsLoading, navigate, fetchProfile, showError]); // Updated dependencies
+  }, [isAuthenticated, authIsLoading, navigate, fetchProfile]);
 
   // Intersection Observer for scroll animations
   useEffect(() => {

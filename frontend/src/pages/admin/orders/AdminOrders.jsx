@@ -58,8 +58,19 @@ const AdminOrders = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return bowlImage;
-    return `${API_BASE_URL.replace('/api', '')}${imagePath.startsWith('/') ? imagePath : '/' + imagePath}`;
+    if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
+      return bowlImage;
+    }
+    
+    // Remove '/api' from API_BASE_URL if it exists
+    const baseUrl = API_BASE_URL.replace('/api', '');
+    const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    
+    // If the path already starts with http, return it as-is
+    if (path.startsWith('http')) return path;
+    
+    // Construct full URL
+    return `${baseUrl}${path}`;
   };
 
   const formatDate = (dateString) => {
@@ -109,19 +120,17 @@ const AdminOrders = () => {
   useEffect(() => {
     if (!authIsLoading) {
       if (!isAuthenticated) {
-        showError("Please log in as an admin.");
         navigate('/login', { replace: true });
         return;
       }
       const userRole = localStorage.getItem('role');
       if (userRole !== '1') { // Assuming '1' is Admin role
-        showError("You are not authorized to view this page.");
         navigate('/admin', { replace: true });
         return;
       }
       fetchOrders();
     }
-  }, [authIsLoading, isAuthenticated, navigate, showError, fetchOrders]);
+  }, [authIsLoading, isAuthenticated, navigate, fetchOrders]);
 
   // ... (Animation useEffects remain the same) ...
   useEffect(() => {
@@ -227,7 +236,7 @@ const AdminOrders = () => {
   }
 
   return (
-    <div className="min-h-screen relative font-sans bg-gray-50"> {/* Added bg-gray-50 */}
+    <div className="min-h-screen relative font-sans bg-gray-50">
       <div className="absolute w-full z-50">
         <AdminNavigation />
       </div>
@@ -302,8 +311,11 @@ const AdminOrders = () => {
                     {/* Order Header */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 pb-4 border-b border-gray-100">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          <img src={order.items[0].image} alt={order.items[0].name} className="w-full h-full object-cover" onError={(e) => { e.target.src = bowlImage; e.target.className = "w-12 h-12 object-contain"; }} />
+                        {/* Replace image with person icon */}
+                        <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                          </svg>
                         </div>
                         <div className="flex-grow min-w-0">
                           <h3 className="font-bold text-xl text-gray-900">{order.orderId}</h3>
@@ -393,9 +405,8 @@ const AdminOrders = () => {
                 )
               })
             ) : (
-              /* No Orders Found */
+              // ...existing no orders state...
               <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                {/* ... (Icon, text, buttons) ... */}
                 <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center"> <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders found</h3>
                 <p className="text-gray-600 mb-6"> {searchTerm || filterStatus !== 'all' ? "No orders match your current search criteria." : "No orders have been placed yet."} </p>
