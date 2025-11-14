@@ -10,7 +10,7 @@ const AdminNavigation = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  
+
 
   const handleHomeClick = () => {
     navigate("/admin/dashboard");
@@ -104,43 +104,30 @@ const AdminNavigation = () => {
                 <div className="flex items-center space-x-8">
                   <button
                     onClick={handleHomeClick}
-                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                      isActive("/admin/dashboard")
-                        ? "bg-white text-yellow-500 shadow-md"
-                        : "text-white hover:bg-white/20"
-                    }`}
+                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive("/admin/dashboard")
+                      ? "bg-white text-yellow-500 shadow-md"
+                      : "text-white hover:bg-white/20"
+                      }`}
                   >
                     Dashboard
                   </button>
                   <button
                     onClick={handleOrdersClick}
-                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                      isActive("/admin/orders")
-                        ? "bg-white text-yellow-500 shadow-md"
-                        : "text-white hover:bg-white/20"
-                    }`}
+                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive("/admin/orders")
+                      ? "bg-white text-yellow-500 shadow-md"
+                      : "text-white hover:bg-white/20"
+                      }`}
                   >
                     Orders
                   </button>
                   <button
                     onClick={handleMenuClick}
-                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                      isActive("/admin/menu")
-                        ? "bg-white text-yellow-500 shadow-md"
-                        : "text-white hover:bg-white/20"
-                    }`}
+                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive("/admin/menu")
+                      ? "bg-white text-yellow-500 shadow-md"
+                      : "text-white hover:bg-white/20"
+                      }`}
                   >
                     Menu
-                  </button>
-                  <button
-                    onClick={handleReportsClick}
-                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                      isActive("/admin/reports")
-                        ? "bg-white text-yellow-500 shadow-md"
-                        : "text-white hover:bg-white/20"
-                    }`}
-                  >
-                    Reports
                   </button>
                 </div>
               </div>
@@ -177,9 +164,8 @@ const AdminNavigation = () => {
 
                   {/* Dropdown Arrow */}
                   <svg
-                    className={`w-4 h-4 text-white transition-transform duration-200 ${
-                      isProfileDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-4 h-4 text-white transition-transform duration-200 ${isProfileDropdownOpen ? "rotate-180" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -233,9 +219,8 @@ const AdminNavigation = () => {
                 className="bg-white/25 hover:bg-white/35 backdrop-blur-md rounded-full p-3 text-white transition-all duration-200 shadow-lg"
               >
                 <svg
-                  className={`w-6 h-6 transition-transform duration-300 ${
-                    isMobileMenuOpen ? "rotate-90" : ""
-                  }`}
+                  className={`w-6 h-6 transition-transform duration-300 ${isMobileMenuOpen ? "rotate-90" : ""
+                    }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -272,9 +257,8 @@ const AdminNavigation = () => {
 
       {/* Mobile Menu Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Mobile Menu Header */}
@@ -332,11 +316,10 @@ const AdminNavigation = () => {
             <div className="py-4">
               <button
                 onClick={handleHomeClickMobile}
-                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                  isActive("/admin/dashboard")
-                    ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${isActive("/admin/dashboard")
+                  ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                  : "text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -345,11 +328,10 @@ const AdminNavigation = () => {
               </button>
               <button
                 onClick={handleOrdersClickMobile}
-                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                  isActive("/admin/orders")
-                    ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${isActive("/admin/orders")
+                  ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                  : "text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 <svg
                   className="w-5 h-5"
@@ -368,11 +350,10 @@ const AdminNavigation = () => {
               </button>
               <button
                 onClick={handleMenuClickMobile}
-                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                  isActive("/admin/menu")
-                    ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${isActive("/admin/menu")
+                  ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                  : "text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 <svg
                   className="w-5 h-5"
@@ -391,11 +372,10 @@ const AdminNavigation = () => {
               </button>
               <button
                 onClick={handleReportsClickMobile}
-                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${
-                  isActive("/admin/reports")
-                    ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`w-full text-left px-6 py-4 text-lg font-medium transition-colors flex items-center space-x-3 ${isActive("/admin/reports")
+                  ? "bg-yellow-50 text-yellow-600 border-r-4 border-yellow-500"
+                  : "text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 <svg
                   className="w-5 h-5"

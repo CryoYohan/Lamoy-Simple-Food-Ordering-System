@@ -374,9 +374,56 @@ const Menu = () => {
         </div>
       </div>
 
-      {/* ... (Footer remains the same) ... */}
-      <footer className="bg-yellow-500 py-12 sm:py-16 px-4 sm:px-6 lg:px-8"> <div className="max-w-6xl mx-auto"> <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12"> <div className="md:col-span-1 text-center sm:text-left"> <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-6"> <img src={logoImage} alt="Lamoy Logo" className="w-20 h-20 sm:w-40 sm:h-40 mr-2 sm:mr-3" /> </div> </div> <div className="text-center sm:text-left"> <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Quick Links</h3> <ul className="space-y-1 sm:space-y-2"> <li><button onClick={() => navigate('/home')} className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Home</button></li> <li><button onClick={() => navigate('/menu')} className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Menu</button></li> <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">About</a></li> <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Contact</a></li> </ul> </div> <div className="text-center sm:text-left"> <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Our Links</h3> <ul className="space-y-1 sm:space-y-2"> <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Terms</a></li> <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Privacy</a></li> <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Support</a></li> <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Delivery</a></li> </ul> </div> <div className="text-center sm:text-left"> <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Contact Us</h3> <ul className="space-y-1 sm:space-y-2"> <li className="text-white/80 text-sm sm:text-base">lamoy@example.com</li> <li className="text-white/80 text-sm sm:text-base">+63 123 456 7890</li> </ul> </div> </div> <div className="border-t border-white/20 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center"> <p className="text-white/80 text-sm sm:text-base">© 2025 Lamoy. All rights reserved.</p> </div> </div> </footer>
+      {/* Footer */}
+      <footer className="bg-yellow-500 py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
+            {/* Logo and Description */}
+            <div className="md:col-span-1 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-6">
+                <img
+                  src={logoImage}
+                  alt="Lamoy Logo"
+                  className="w-20 h-20 sm:w-40 sm:h-40 mr-2 sm:mr-3"
+                />
+              </div>
+            </div>
 
+            {/* Quick Links */}
+            <div className="text-center sm:text-left">
+              <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Quick Links</h3>
+              <ul className="space-y-1 sm:space-y-2">
+                <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">About</a></li>
+                <li><a href="https://mail.google.com/mail/?view=cm&fs=1&to=cyrilypil@gmail.com&su=Customer%20Support%20&body=Enter%20your%20concern%20here" target="_blank" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Contact</a></li>
+              </ul>
+            </div>
+
+            {/* Our Links */}
+            <div className="text-center sm:text-left">
+              <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Our Links</h3>
+              <ul className="space-y-1 sm:space-y-2">
+                <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Terms</a></li>
+                <li><a href="#" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Privacy</a></li>
+                <li><a href="https://mail.google.com/mail/?view=cm&fs=1&to=cyrilypil@gmail.com&su=Customer%20Support%20&body=Enter%20your%20concern%20here" target="_blank" className="text-white/80 hover:text-white transition-colors duration-200 text-sm sm:text-base">Support</a></li>
+              </ul>
+            </div>
+
+            {/* Contact Us */}
+            <div className="text-center sm:text-left">
+              <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Contact Us</h3>
+              <ul className="space-y-1 sm:space-y-2">
+                <li className="text-white/80 text-sm sm:text-base">cyrilypil@gmail.com</li>
+                <li className="text-white/80 text-sm sm:text-base">+63 931 010 8119</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="border-t border-white/20 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center">
+            <p className="text-white/80 text-sm sm:text-base">© 2025 Lamoy. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
