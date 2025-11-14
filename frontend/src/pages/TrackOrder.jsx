@@ -383,7 +383,7 @@ const TrackOrderPage = () => {
               >
                 View Details
               </button>
-              {order.status !== 5 && order.status !== 4 && (
+              {order.status === 1 && (
                 <button
                   className="px-4 sm:px-6 py-2 sm:py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   onClick={handleCancelOrder}
