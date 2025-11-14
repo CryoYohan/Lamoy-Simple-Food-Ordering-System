@@ -52,7 +52,6 @@ namespace backend.Services
 
         public async Task RequestPasswordResetAsync(ForgotPasswordRequest request)
         {
-// ... (existing code remains the same) ...
             _logger.LogInformation("Password reset requested for email: {Email}", request.Email);
             var user = await _userRepository.GetUserByEmailAsync(request.Email);
 
@@ -121,7 +120,6 @@ namespace backend.Services
         // This is for Admins
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
-// ... (existing code remains the same) ...
             _logger.LogInformation("Fetching all users");
             var users = await _userRepository.GetAllUsersAsync();
             return users.Select(MapToUserDto);
@@ -177,7 +175,6 @@ namespace backend.Services
         // --- Helper Mapping Method ---
         private UserDto MapToUserDto(User user)
         {
-// ... (existing code remains the same) ...
             return new UserDto
             {
                 UserId = user.UserId,
