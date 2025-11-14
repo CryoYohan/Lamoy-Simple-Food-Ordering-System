@@ -83,14 +83,14 @@ const AdminViewMenu = () => {
 
   // 5. Auth and Fetch useEffect
   useEffect(() => {
+    if (!authIsLoading && !isAuthenticated) {
+      navigate('/login', { replace: true });
+      return;
+    }
     if (!authIsLoading && isAuthenticated) {
       fetchItemDetails();
     }
-    if (!authIsLoading && !isAuthenticated) {
-      showError("Please log in to view this page.");
-      navigate('/login', { replace: true });
-    }
-  }, [authIsLoading, isAuthenticated, fetchItemDetails, navigate, showError]);
+  }, [authIsLoading, isAuthenticated, fetchItemDetails, navigate]);
 
 
   // Intersection Observer for scroll animations

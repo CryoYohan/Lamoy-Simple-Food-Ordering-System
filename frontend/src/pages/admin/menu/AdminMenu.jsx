@@ -4,26 +4,38 @@ import AdminNavigation from '../../../components/admin/adminNavbar';
 import bgImage from '../../../assets/MAIN4.png';
 import bowlImage from '../../../assets/BOWL.png';
 import { useAuth } from '../../../context/AuthContext';
-import { useToast } from '../../../context/ToastContext'; // Import useToast
-// 1. Import menu service functions (UPDATED)
+import { useToast } from '../../../context/ToastContext';
 import { getAllAdminMenuItems, getAllCategories, deleteMenuItem, updateMenuItem } from '../../../services/menuService';
-import { API_BASE_URL } from '../../../apiConfig'; // Import base URL for images
+import { API_BASE_URL } from '../../../apiConfig';
 
 const AdminMenu = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth(); // Assuming this checks token presence
-  const { showSuccess, showError } = useToast(); // Use toast for feedback
+  const { isAuthenticated } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const [menuItems, setMenuItems] = useState([]);
-  const [categories, setCategories] = useState([]); // State for categories
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all'); // Use category ID
+  const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Keep const if it doesn't change
+  const itemsPerPage = 6;
+
+  // Modal states
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemName: ''
+  });
+
+  const [toggleModal, setToggleModal] = useState({
+    isOpen: false,
+    item: null,
+    action: '' // 'enable' or 'disable'
+  });
 
   // Animation state
   const [isVisible, setIsVisible] = useState({
@@ -35,11 +47,10 @@ const AdminMenu = () => {
   // --- Data Fetching ---
   const fetchCategories = useCallback(async () => {
     try {
-      const fetchedCategories = await getAllCategories(); // [{ categoryId: 1, name: 'Main Course' }, ...]
+      const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
     } catch (err) {
       console.error('Error fetching categories:', err);
-      // Don't set the main error state, maybe show a toast
       showError('Failed to load categories.');
     }
   }, [showError]);
@@ -48,27 +59,21 @@ const AdminMenu = () => {
     setLoading(true);
     setError(null);
     try {
-      // --- FIX: Call the new admin function ---
-      const data = await getAllAdminMenuItems(); // Fetches array of MenuItemDto
-      // ------------------------------------
-
-      // Map backend data (MenuItemDto) directly, look up category name
+      const data = await getAllAdminMenuItems();
       const formattedData = data.map((item) => {
-        // Find the category name using categoryId
         const categoryObj = categories.find(cat => cat.categoryId === item.categoryId);
         const categoryName = categoryObj ? categoryObj.name : 'Unknown';
 
         return {
-          id: item.itemId, // Use the actual itemId as the key/id
+          id: item.itemId,
           itemId: item.itemId,
           name: item.name,
           description: item.description,
           price: parseFloat(item.price),
           categoryId: item.categoryId,
-          category: categoryName, // Use the fetched name
-          image: item.imageUrl || null, // Use null for default handling
+          category: categoryName,
+          image: item.imageUrl || null,
           isActive: item.isAvailable,
-          // Use actual dates if available from backend, otherwise fallback
           createdDate: item.createdDate || new Date().toISOString(),
           updatedDate: item.updatedDate || new Date().toISOString(),
         };
@@ -78,11 +83,11 @@ const AdminMenu = () => {
     } catch (err) {
       console.error('Error fetching menu items:', err);
       setError(`Failed to load menu items: ${err.message}`);
-      showError(`Failed to load menu items: ${err.message}`); // Show toast
+      showError(`Failed to load menu items: ${err.message}`);
     } finally {
       setLoading(false);
     }
-  }, [categories, showError]); // Depend on categories
+  }, [categories, showError]);
 
   // Fetch categories first, then menu items
   useEffect(() => {
@@ -90,27 +95,20 @@ const AdminMenu = () => {
   }, [fetchCategories]);
 
   useEffect(() => {
-    // Only fetch menu items if categories are loaded
     if (categories.length > 0) {
       fetchMenuItems();
     }
-    // If categories haven't loaded yet, fetchMenuItems will run again when they do
-  }, [categories, fetchMenuItems]); // Re-run if categories or fetchMenuItems changes
-
+  }, [categories, fetchMenuItems]);
 
   // --- Filtering and Pagination ---
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = !searchTerm.trim() ||
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    // Filter by categoryId now
     const matchesCategory = filterCategory === 'all' || item.categoryId === parseInt(filterCategory);
-
     const matchesStatus = filterStatus === 'all' ||
       (filterStatus === 'active' && item.isActive) ||
       (filterStatus === 'inactive' && !item.isActive);
-
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -119,7 +117,6 @@ const AdminMenu = () => {
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
-  // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterCategory, filterStatus]);
@@ -127,14 +124,7 @@ const AdminMenu = () => {
   // --- Animation ---
   useEffect(() => {
     if (loading) return;
-
-    // Simplified animation trigger - you might want more sophisticated logic
     setIsVisible({ hero: true, content: true, menuItems: true });
-
-    // Your Intersection Observer logic (can keep if preferred)
-    // const observer = new IntersectionObserver(...)
-    // ...
-    // return () => observer.disconnect();
   }, [loading]);
 
   // --- Helper Functions ---
@@ -150,7 +140,6 @@ const AdminMenu = () => {
   };
 
   const getCategoryColor = (categoryName) => {
-    // Use the category name fetched from the backend
     switch (categoryName) {
       case 'Main Course': return 'bg-blue-100 text-blue-600';
       case 'Dessert': return 'bg-pink-100 text-pink-600';
@@ -160,14 +149,11 @@ const AdminMenu = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    // Construct URL based on the backend path
-    if (!imagePath) return bowlImage; // Default image
-    // Assuming imagePath is like "/uploads/guid_name.jpg"
-    return `${API_BASE_URL.replace('/api', '')}${imagePath}`; // Correctly forms http://localhost:5143/uploads/...
+    if (!imagePath) return bowlImage;
+    return `${API_BASE_URL.replace('/api', '')}${imagePath}`;
   };
 
-
-  // --- Action Handlers ---
+  // --- Action Handlers with Modals ---
   const handleView = (itemId) => {
     navigate(`/admin/menu/view/${itemId}`);
   };
@@ -176,49 +162,69 @@ const AdminMenu = () => {
     navigate(`/admin/menu/edit/${itemId}`);
   };
 
-  const handleDelete = async (itemId) => {
-    // Replace window.confirm with a nicer modal if available
-    if (window.confirm('Are you sure you want to delete this menu item?')) {
-      try {
-        await deleteMenuItem(itemId); // Call the service
-        showSuccess(`Menu item #${itemId} deleted successfully.`);
-        // Refresh the list after deleting
-        fetchMenuItems(); // Re-fetch
-      } catch (err) {
-        console.error(`Error deleting item ${itemId}:`, err);
-        showError(`Failed to delete item: ${err.message}`);
-      }
+  const handleDelete = (item) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: item.itemId,
+      itemName: item.name
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteMenuItem(deleteModal.itemId);
+      showSuccess(`"${deleteModal.itemName}" deleted successfully.`);
+      fetchMenuItems();
+      setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+    } catch (err) {
+      console.error(`Error deleting item ${deleteModal.itemId}:`, err);
+      showError(`Failed to delete item: ${err.message}`);
     }
   };
 
-  const handleToggleStatus = async (item) => {
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+  };
+
+  const handleToggleStatus = (item) => {
+    const action = item.isActive ? 'disable' : 'enable';
+    setToggleModal({
+      isOpen: true,
+      item: item,
+      action: action
+    });
+  };
+
+  const confirmToggleStatus = async () => {
+    const { item, action } = toggleModal;
     const updatedStatus = !item.isActive;
-    const action = updatedStatus ? 'enable' : 'disable';
 
-    if (window.confirm(`Are you sure you want to ${action} "${item.name}"?`)) {
-      try {
-        // Prepare the update DTO (MenuItemUpdateDto)
-        const updateData = {
-          name: item.name,
-          description: item.description,
-          price: item.price,
-          imageUrl: item.image, // Send the current URL back
-          categoryId: item.categoryId,
-          isAvailable: updatedStatus // The only change needed
-        };
+    try {
+      const updateData = {
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        imageUrl: item.image,
+        categoryId: item.categoryId,
+        isAvailable: updatedStatus
+      };
 
-        await updateMenuItem(item.itemId, updateData); // Call the service
-        showSuccess(`"${item.name}" has been ${updatedStatus ? 'enabled' : 'disabled'}.`);
-        fetchMenuItems(); // Re-fetch to show the change
-      } catch (err) {
-        console.error(`Error updating status for item ${item.itemId}:`, err);
-        showError(`Failed to update status: ${err.message}`);
-      }
+      await updateMenuItem(item.itemId, updateData);
+      showSuccess(`"${item.name}" has been ${action}d.`);
+      fetchMenuItems();
+      setToggleModal({ isOpen: false, item: null, action: '' });
+    } catch (err) {
+      console.error(`Error updating status for item ${item.itemId}:`, err);
+      showError(`Failed to ${action} item: ${err.message}`);
     }
+  };
+
+  const cancelToggleStatus = () => {
+    setToggleModal({ isOpen: false, item: null, action: '' });
   };
 
   // --- Render Logic ---
-  if (loading && menuItems.length === 0) { // Show loading only on initial load
+  if (loading && menuItems.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -241,10 +247,7 @@ const AdminMenu = () => {
           </svg>
           <h3 className="text-xl font-semibold text-red-700 mb-2">Loading Error</h3>
           <p className="text-gray-700 mb-4">{error}</p>
-          <button
-            onClick={fetchMenuItems}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-semibold transition-colors"
-          >
+          <button onClick={fetchMenuItems} className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-semibold transition-colors">
             Retry Loading
           </button>
         </div>
@@ -252,9 +255,80 @@ const AdminMenu = () => {
     );
   }
 
-  // --- Main JSX Return ---
   return (
     <div className="min-h-screen relative font-sans bg-gray-50">
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all border border-gray-200">
+            <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              Delete Menu Item?
+            </h3>
+            <p className="text-gray-600 text-center mb-6 text-sm leading-relaxed">
+              Are you sure you want to delete <span className="font-semibold text-gray-900">"{deleteModal.itemName}"</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toggle Status Confirmation Modal */}
+      {toggleModal.isOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all border border-gray-200">
+            <div className={`flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-4 ${toggleModal.action === 'enable' ? 'bg-green-100' : 'bg-orange-100'}`}>
+              <svg className={`w-8 h-8 ${toggleModal.action === 'enable' ? 'text-green-500' : 'text-orange-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              {toggleModal.action === 'enable' ? 'Enable' : 'Disable'} Menu Item?
+            </h3>
+            <p className="text-gray-600 text-center mb-6 text-sm leading-relaxed">
+              Are you sure you want to {toggleModal.action} <span className="font-semibold text-gray-900">"{toggleModal.item?.name}"</span>?
+              {toggleModal.action === 'disable' && ' This item will no longer be visible to customers.'}
+              {toggleModal.action === 'enable' && ' This item will become available to customers.'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelToggleStatus}
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmToggleStatus}
+                className={`flex-1 px-6 py-3 text-white rounded-lg font-medium transition-colors ${
+                  toggleModal.action === 'enable' 
+                    ? 'bg-green-500 hover:bg-green-600' 
+                    : 'bg-orange-500 hover:bg-orange-600'
+                }`}
+              >
+                {toggleModal.action === 'enable' ? 'Enable' : 'Disable'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="absolute w-full z-50">
         <AdminNavigation />
       </div>
@@ -387,17 +461,17 @@ const AdminMenu = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                 {currentItems.map((item, index) => (
                   <div
-                    key={item.itemId} // Use actual itemId
+                    key={item.itemId}
                     className="bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 flex flex-col h-full"
                     style={{ transitionDelay: `${index * 100}ms` }}
                   >
                     {/* Image */}
                     <div className="relative w-full aspect-[16/9] bg-gray-100 flex items-center justify-center overflow-hidden">
                       <img
-                        src={getImageUrl(item.image)} // Use helper
+                        src={getImageUrl(item.image)}
                         alt={item.name}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                        onError={(e) => { e.target.src = bowlImage; /* More robust fallback */ }}
+                        onError={(e) => { e.target.src = bowlImage; }}
                       />
                       {/* Overlays */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
@@ -411,7 +485,7 @@ const AdminMenu = () => {
                       </div>
                       <div className="absolute bottom-3 left-3">
                         <span className={`px-2.5 py-1 rounded-lg text-xs font-bold shadow-lg ${getCategoryColor(item.category)} border border-white/20`}>
-                          {item.category} {/* Use mapped name */}
+                          {item.category}
                         </span>
                       </div>
                     </div>
@@ -447,18 +521,16 @@ const AdminMenu = () => {
                         <div className="border-t border-gray-200"></div>
                         {/* Action Buttons */}
                         <div className="grid grid-cols-2 gap-3 pt-2">
-                          {/* Pass itemId instead of id */}
                           <button onClick={() => handleView(item.itemId)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> View
                           </button>
-                          <button onClick={() => handleEdit(item.itemId)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                          <button onClick={() => handleEdit(item.itemId)} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> Edit
                           </button>
-                          {/* Pass the whole item for context */}
                           <button onClick={() => handleToggleStatus(item)} className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md ${item.isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l-4-4 4 4m0 6l-4 4-4-4" /></svg> {item.isActive ? 'Disable' : 'Enable'}
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg> {item.isActive ? 'Disable' : 'Enable'}
                           </button>
-                          <button onClick={() => handleDelete(item.itemId)} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                          <button onClick={() => handleDelete(item)} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Delete
                           </button>
                         </div>

@@ -17,6 +17,16 @@ const CartPage = () => {
     summary: false
   });
 
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemName: ''
+  });
+
+  // Clear cart confirmation modal state
+  const [clearCartModal, setClearCartModal] = useState(false);
+
   // Intersection Observer for scroll animations
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -75,21 +85,40 @@ const CartPage = () => {
   };
 
   const removeItem = (itemId) => {
-    const updated = cartItems.filter(item => item.itemId !== itemId);
-    setCartItems(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
-
-    // 🔥 Dispatch cart update event
-    dispatchCartUpdate();
+    const itemToDelete = cartItems.find(item => item.itemId === itemId);
+    setDeleteModal({
+      isOpen: true,
+      itemId: itemId,
+      itemName: itemToDelete?.name || 'this item'
+    });
   };
 
-  // Clear entire cart function (if needed)
+  const confirmDelete = () => {
+    const updated = cartItems.filter(item => item.itemId !== deleteModal.itemId);
+    setCartItems(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
+    dispatchCartUpdate();
+    setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+  };
+
+  // Clear entire cart function
   const clearCart = () => {
+    setClearCartModal(true);
+  };
+
+  const confirmClearCart = () => {
     setCartItems([]);
     localStorage.setItem("cart", JSON.stringify([]));
-
-    // 🔥 Dispatch cart update event
     dispatchCartUpdate();
+    setClearCartModal(false);
+  };
+
+  const cancelClearCart = () => {
+    setClearCartModal(false);
   };
 
   // Calculate total
@@ -97,6 +126,72 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen relative font-sans bg-white">
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all border border-gray-200">
+            <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              Remove Item?
+            </h3>
+            <p className="text-gray-600 text-center mb-6 text-sm leading-relaxed">
+              Are you sure you want to remove <span className="font-semibold text-gray-900">"{deleteModal.itemName}"</span> from your cart?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Cart Confirmation Modal */}
+      {clearCartModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all border border-gray-200">
+            <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              Clear Cart?
+            </h3>
+            <p className="text-gray-600 text-center mb-6 text-sm leading-relaxed">
+              Are you sure you want to remove <span className="font-semibold text-gray-900">all items ({cartItems.length})</span> from your cart? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelClearCart}
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClearCart}
+                className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="absolute w-full z-50">
         <DynamicNavigation />
       </div>

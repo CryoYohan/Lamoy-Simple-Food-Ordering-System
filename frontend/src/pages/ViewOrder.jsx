@@ -97,14 +97,14 @@ const ViewOrderPage = () => {
 
   // Trigger fetch on load/auth change
   useEffect(() => {
+    if (!authIsLoading && !isAuthenticated) {
+      navigate('/login', { replace: true });
+      return;
+    }
     if (!authIsLoading && isAuthenticated && orderId) {
       fetchOrderDetails();
     }
-    if (!authIsLoading && !isAuthenticated) {
-      showError("Please log in to view order details.");
-      navigate('/login', { replace: true });
-    }
-  }, [authIsLoading, isAuthenticated, orderId, fetchOrderDetails, navigate, showError]);
+  }, [authIsLoading, isAuthenticated, orderId, fetchOrderDetails, navigate]);
 
   // --- Helper Functions ---
   const getStatusString = (statusEnum) => { /* ... */ switch (statusEnum) { case 1: return 'Pending'; case 2: return 'Preparing'; case 3: return 'Ready'; case 4: return 'Delivered'; case 5: return 'Cancelled'; default: return 'Unknown'; } };
@@ -121,9 +121,15 @@ const ViewOrderPage = () => {
   };
   const getImageUrl = (item) => {
     if (item?.imageUrl && typeof item.imageUrl === 'string' && item.imageUrl.trim() !== '') {
+      // Remove '/api' from API_BASE_URL if it exists
+      const baseUrl = API_BASE_URL.replace('/api', '');
       const path = item.imageUrl.startsWith('/') ? item.imageUrl : `/${item.imageUrl}`;
+      
+      // If the path already starts with http, return it as-is
       if (path.startsWith('http')) return path;
-      return `${API_BASE_URL}${path}`;
+      
+      // Construct full URL
+      return `${baseUrl}${path}`;
     }
     return bowlImage;
   }
@@ -182,13 +188,17 @@ const ViewOrderPage = () => {
 
   // --- Render Logic ---
   if (authIsLoading || loading) {
-    return ( /* ... Loading spinner ... */
+    return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        {/* Simplified Loader */}
-        <svg className="animate-spin h-10 w-10 text-yellow-500 mr-3" viewBox="0 0 24 24">...</svg>
-        <span className="ml-3 text-lg font-medium text-gray-700">
-          {authIsLoading ? "Verifying session..." : "Loading Order Details..."}
-        </span>
+        <div className="text-center">
+          <svg className="animate-spin h-10 w-10 text-yellow-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-lg font-medium text-gray-700">
+            {authIsLoading ? "Verifying session..." : "Loading Order Details..."}
+          </span>
+        </div>
       </div>
     );
   }
@@ -256,7 +266,7 @@ const ViewOrderPage = () => {
             {order.status === 'Pending' && (
               <button onClick={handleCancel} disabled={isCancelling} className="px-5 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 shadow-sm" >
                 {/* ... Cancel button content ... */}
-                {isCancelling ? (<> <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" >...</svg> Cancelling...</>) : (<> <svg className="w-4 h-4" >...</svg> Cancel Order </>)}
+                {isCancelling ? (<> <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" >...</svg> Cancelling...</>) : (<> <svg className="w-4 h-4" >...</svg>Cancel Order</>)}
               </button>
             )}
           </div>
