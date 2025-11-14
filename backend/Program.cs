@@ -9,7 +9,6 @@ using System.IO;
 using System.Text;
 using backend.Helpers;
 using backend.Repositories;
-using backend.Services;
 using backend.Middleware;
 
 // Load secrets from .env file
@@ -87,6 +86,9 @@ builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 // Add our order-related services
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+//Add our admin services
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // Add HTTPContextAccessor for User Auth
 builder.Services.AddHttpContextAccessor();
