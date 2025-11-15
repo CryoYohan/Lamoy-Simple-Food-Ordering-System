@@ -401,54 +401,52 @@ const AdminDashboard = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-8">
                 Sales Overview (Last 7 Days)
               </h3>
-              <div className="h-80 flex items-end justify-between space-x-3">
+              <div className="relative h-80 flex items-end justify-between gap-2 border-b border-gray-200 pb-4">
                 {salesData && salesData.length > 0 ? (
-                  (() => {
-                    // Calculate max sales for proper scaling
+                  salesData.map((data, index) => {
+                    const salesValue = data.sales || 0;
                     const maxSales = Math.max(...salesData.map(d => d.sales || 0));
-                    const minVisibleHeight = 5; // Minimum 5% height for visibility
                     
-                    return salesData.map((data, index) => {
-                      // Calculate height percentage based on max value
-                      const heightPercentage = maxSales > 0 
-                        ? Math.max(((data.sales || 0) / maxSales) * 100, minVisibleHeight)
-                        : minVisibleHeight;
-                      
-                      return (
-                        <div
-                          key={index}
-                          className="flex flex-col items-center flex-1 group"
-                        >
+                    // Calculate height - simple percentage of max
+                    const heightPercentage = maxSales > 0 ? (salesValue / maxSales) * 100 : 0;
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center flex-1"
+                      >
+                        <div className="w-full flex flex-col items-center">
                           <div
-                            className="bg-yellow-400 rounded-t-lg w-full transition-all duration-1000 hover:bg-yellow-500 cursor-pointer relative"
+                            className="w-full bg-yellow-500 rounded-t hover:bg-yellow-600 cursor-pointer transition-all duration-300 relative group"
                             style={{ 
-                              height: `${heightPercentage}%`,
-                              minHeight: '20px' // Ensure minimum visible height
+                              height: `${Math.max(heightPercentage * 2.5, 20)}px`,
+                              maxHeight: '250px'
                             }}
-                            title={`₱${(data.sales || 0).toLocaleString("en-US", {
+                            title={`₱${salesValue.toLocaleString("en-US", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
                             })}`}
                           >
-                            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                              ₱{(data.sales || 0).toLocaleString("en-US", {
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                              ₱{salesValue.toLocaleString("en-US", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}
                             </div>
                           </div>
-                          <span className="text-sm font-medium text-gray-600 mt-3">
-                            {data.day}
-                          </span>
-                          <span className="text-xs text-gray-500 mt-1">
-                            ₱{((data.sales || 0) / 1000).toFixed(1)}k
-                          </span>
                         </div>
-                      );
-                    });
-                  })()
+                        <span className="text-sm font-medium text-gray-600 mt-3">
+                          {data.day}
+                        </span>
+                        <span className="text-xs text-gray-500 mt-1">
+                          ₱{(salesValue / 1000).toFixed(1)}k
+                        </span>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="w-full text-center text-gray-500">
+                  <div className="w-full text-center text-gray-500 py-20">
                     No sales data available
                   </div>
                 )}
