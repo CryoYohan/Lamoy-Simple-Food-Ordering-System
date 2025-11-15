@@ -10,7 +10,7 @@ This project is a **full-stack food ordering web app**, ideal for small restaura
 
 🧑‍🍳 **Frontend**: React.js  
 🔧 **Backend**: ASP.NET Core Web API  
-🗃️ **Database**: (SQL Server)
+🗃️ **Database**: Neon Serverless Postgresql(SQL Server)
 
 ---
 
@@ -31,7 +31,7 @@ This project is a **full-stack food ordering web app**, ideal for small restaura
 |-------------|--------------------|
 | Frontend    | React.js, Axios, CSS/SCSS |
 | Backend     | ASP.NET Core Web API |
-| Database    | SQL Server|
+| Database    | Neon Serverless PostgreSQL Server|
 
 ---
 
