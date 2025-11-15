@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Added useCallback
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import AdminNavigation from "../../components/admin/adminNavbar";
@@ -6,72 +6,79 @@ import bgImage from "../../assets/MAIN4.png";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  // FIX 1: Destructure 'isLoading' from useAuth and rename it
+  const { user, isAuthenticated, isLoading: authIsLoading } = useAuth();
 
   // State for dashboard data
   const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // This is for *data* loading
   const [error, setError] = useState(null);
 
   // Animation state
   const [isVisible, setIsVisible] = useState({
-    hero: false,
-    content: false,
-    stats: false,
-    charts: false,
     activity: false,
     orders: false,
   });
 
+  // FIX 1: Update auth check effect to wait for authIsLoading
   useEffect(() => {
-    // Redirect if not authenticated or not an admin
-    if (isAuthenticated === false) {
-      navigate("/login");
-    } else if (isAuthenticated && user?.role !== "Admin") {
-      navigate("/home");
+    // Only run checks *after* auth has finished loading
+    if (!authIsLoading) {
+      if (!isAuthenticated) {
+        // User is confirmed to be not logged in
+        navigate("/login");
+      } else if (isAuthenticated && user?.role !== "Admin") {
+        // User is logged in, but not an admin
+        navigate("/home");
+      }
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [authIsLoading, isAuthenticated, user, navigate]); // Add authIsLoading
 
   // Fetch dashboard data from backend
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
-        const response = await fetch(
-          "http://localhost:5143/api/admin/dashboard",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch dashboard data");
+      const response = await fetch(
+        "http://localhost:5143/api/admin/dashboard",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
+      );
 
-        const data = await response.json();
-        setDashboardData(data);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching dashboard:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error("Failed to fetch dashboard data");
       }
-    };
 
-    if (isAuthenticated && user?.role === "Admin") {
+      const data = await response.json();
+      setDashboardData(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching dashboard:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed dependencies, will be called by other effect
+
+  // FIX 1: Update data fetching to wait for authIsLoading
+  useEffect(() => {
+    // Only fetch data *after* auth is loaded AND user is confirmed admin
+    if (!authIsLoading && isAuthenticated && user?.role === "Admin") {
       fetchDashboardData();
     }
-  }, [isAuthenticated, user]);
+  }, [authIsLoading, isAuthenticated, user, fetchDashboardData]);
 
   // Intersection Observer for scroll animations
   useEffect(() => {
+    // FIX 1: Don't run observer if auth or data is loading
+    if (authIsLoading || loading) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -93,7 +100,7 @@ const AdminDashboard = () => {
     sections.forEach((section) => observer.observe(section));
 
     return () => observer.disconnect();
-  }, []);
+  }, [authIsLoading, loading]); // Re-run when loading states change
 
   // Set hero section visible immediately
   useEffect(() => {
@@ -110,6 +117,7 @@ const AdminDashboard = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // ... (getStatusColor, getStatusBarColor, getActivityIcon helpers remain the same) ...
   const getStatusColor = (status) => {
     const statusLower = status?.toLowerCase() || "";
     switch (statusLower) {
@@ -179,8 +187,9 @@ const AdminDashboard = () => {
     }
   };
 
-  // Loading state
-  if (loading) {
+
+  // FIX 1: Update loading state check
+  if (authIsLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -211,9 +220,22 @@ const AdminDashboard = () => {
     );
   }
 
-  // No data state
+
+  // FIX 1: Update this check. If auth is loaded and no data, something's wrong.
   if (!dashboardData) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-gray-600">Could not load dashboard data. You may not be authorized.</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="mt-4 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+          >
+            Login
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const {
@@ -240,11 +262,10 @@ const AdminDashboard = () => {
         }}
       >
         <div
-          className={`transition-all duration-1000 ease-out ${
-            isVisible.hero
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
-          }`}
+          className={`transition-all duration-1000 ease-out ${isVisible.hero
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-8"
+            }`}
           data-section="hero"
         >
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold mb-4 sm:mb-6">
@@ -279,11 +300,10 @@ const AdminDashboard = () => {
                       })}
                     </p>
                     <p
-                      className={`text-xs lg:text-sm font-semibold ${
-                        stats.monthlyGrowth >= 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
+                      className={`text-xs lg:text-sm font-semibold ${stats.monthlyGrowth >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                        }`}
                     >
                       {stats.monthlyGrowth >= 0 ? "+" : ""}
                       {stats.monthlyGrowth.toFixed(1)}% this month
@@ -389,11 +409,10 @@ const AdminDashboard = () => {
         <div className="max-w-[1400px] mx-auto">
           {/* Charts Section */}
           <div
-            className={`grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 mb-10 transition-all duration-1000 ease-out ${
-              isVisible.charts
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}
+            className={`grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 mb-10 transition-all duration-1000 ease-out ${isVisible.charts
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+              }`}
             data-section="charts"
           >
             {/* Sales Chart */}
@@ -407,13 +426,13 @@ const AdminDashboard = () => {
                     // Calculate max sales for proper scaling
                     const maxSales = Math.max(...salesData.map(d => d.sales || 0));
                     const minVisibleHeight = 5; // Minimum 5% height for visibility
-                    
+
                     return salesData.map((data, index) => {
                       // Calculate height percentage based on max value
-                      const heightPercentage = maxSales > 0 
+                      const heightPercentage = maxSales > 0
                         ? Math.max(((data.sales || 0) / maxSales) * 100, minVisibleHeight)
                         : minVisibleHeight;
-                      
+
                       return (
                         <div
                           key={index}
@@ -421,9 +440,9 @@ const AdminDashboard = () => {
                         >
                           <div
                             className="bg-yellow-400 rounded-t-lg w-full transition-all duration-1000 hover:bg-yellow-500 cursor-pointer relative"
-                            style={{ 
+                            style={{
                               height: `${heightPercentage}%`,
-                              minHeight: '20px' // Ensure minimum visible height
+                              // FIX 2: REMOVE THE minHeight
                             }}
                             title={`₱${(data.sales || 0).toLocaleString("en-US", {
                               minimumFractionDigits: 2,
@@ -509,7 +528,7 @@ const AdminDashboard = () => {
               </h3>
               <div className="space-y-6">
                 {orderStatusDistribution &&
-                orderStatusDistribution.length > 0 ? (
+                  orderStatusDistribution.length > 0 ? (
                   orderStatusDistribution.map((status, index) => (
                     <div key={index}>
                       <div className="flex items-center justify-between mb-2">
