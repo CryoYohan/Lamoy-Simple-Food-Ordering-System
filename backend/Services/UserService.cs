@@ -92,6 +92,20 @@ namespace backend.Services
                 throw new InvalidOperationException("Invalid or expired token.");
             }
 
+            // Check if the new password is the same as the current password
+            if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            {
+                _logger.LogWarning("Password reset failed: New password is the same as current password for User {UserId}", user.UserId);
+                throw new InvalidOperationException("You cannot use the same password as your current password.");
+            }
+
+            // Check if password contains at least 1 capital letter
+            if (!System.Text.RegularExpressions.Regex.IsMatch(request.NewPassword, "[A-Z]"))
+            {
+                _logger.LogWarning("Password reset failed: Password must contain at least 1 capital letter for User {UserId}", user.UserId);
+                throw new InvalidOperationException("Password must contain at least 1 capital letter.");
+            }
+
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             user.PasswordResetToken = null;
             user.ResetTokenExpiry = null;
