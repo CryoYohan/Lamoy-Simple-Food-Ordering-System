@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 // 1. Import useToast and the service function
 import { useToast } from "../context/ToastContext";
-import { createOrder } from "../services/orderService"; // Adjust path if needed
+import { createOrder } from "../services/orderService";
 
 const CheckOutPage = () => {
   const navigate = useNavigate();
