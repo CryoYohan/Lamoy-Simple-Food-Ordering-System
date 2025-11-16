@@ -55,14 +55,23 @@ const SignUpPage = () => {
     setIsVisible((prev) => ({ ...prev, hero: true }));
   }, []);
 
-  const handleInputChange = (e) => {
+  const [passwordError, setPasswordError] = useState("");
+
+  const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };
 
+    // Validate password on change
+    if (name === "password") {
+      const errors = validatePassword(value);
+      setPasswordError(
+        errors.length > 0 ? `Password must be ${errors.join(", ")}` : ""
+      );
+    }
+  };
 
   const validatePassword = (password) => {
     const errors = [];
@@ -81,6 +90,14 @@ const SignUpPage = () => {
     }
 
     return errors;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   //
@@ -104,7 +121,9 @@ const SignUpPage = () => {
     }
     const passwordErrors = validatePassword(formData.password);
     if (passwordErrors.length > 0) {
-      const errorMessage = `Password Requirements Not Met: Your password must include: ${passwordErrors.join(", ")}.`;
+      const errorMessage = `Password Requirements Not Met: Your password must include: ${passwordErrors.join(
+        ", "
+      )}.`;
       showWarning(errorMessage);
       setIsLoading(false);
       return;
@@ -125,21 +144,25 @@ const SignUpPage = () => {
       // 2. Call our new, clean service function.
       // The new URL (api/auth/register) is inside the service.
       const data = await register(userData);
-      console.log(`Message: ${data}`)
+      console.log(`Message: ${data}`);
 
       // 3. Handle success
       // The backend message is: { message: "Registration complete!" }
-      showSuccess(`Account Created! Welcome to Lamoy, ${formData.userName}! You can now sign in.`);
+      showSuccess(
+        `Account Created! Welcome to Lamoy, ${formData.userName}! You can now sign in.`
+      );
 
       setTimeout(() => {
         navigate("/login");
       }, 1000);
-
     } catch (err) {
       // 4. Handle ANY error (network or middleware)
       // The 'err.message' will be the exact string from our backend,
       // e.g., "Username already exists." or "Email already exists."
-      showError(err.message || "Connection Error: Please check your internet and try again.");
+      showError(
+        err.message ||
+          "Connection Error: Please check your internet and try again."
+      );
       console.error("Signup error:", err);
     } finally {
       setIsLoading(false);
@@ -170,10 +193,11 @@ const SignUpPage = () => {
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div
-          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${isVisible.hero
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-            }`}
+          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${
+            isVisible.hero
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
           data-section="hero"
         >
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
@@ -190,10 +214,11 @@ const SignUpPage = () => {
         </div>
 
         <div
-          className={`w-full max-w-xs sm:max-w-lg md:max-w-2xl bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${isVisible.form
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-            }`}
+          className={`w-full max-w-xs sm:max-w-lg md:max-w-2xl bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${
+            isVisible.form
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
           data-section="form"
           style={{ transitionDelay: "300ms" }}
         >
@@ -295,13 +320,18 @@ const SignUpPage = () => {
                     id="password"
                     name="password"
                     value={formData.password}
-                    onChange={handleInputChange}
+                    onChange={handlePasswordChange}
                     className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
                     required
                     minLength="6"
                     disabled={isLoading}
                   />
                 </div>
+                {passwordError && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-1 col-span-2">
+                    {passwordError}
+                  </p>
+                )}
                 <div>
                   <label
                     htmlFor="confirmPassword"
