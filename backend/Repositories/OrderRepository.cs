@@ -24,7 +24,7 @@ namespace backend.Repositories
             await _context.SaveChangesAsync();
             return order;
         }
-
+    
         public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId)
         {
             return await _context.Orders
@@ -36,7 +36,7 @@ namespace backend.Repositories
                 .ToListAsync();
         }
         
-        // --- ADD NEW METHOD FOR ADMIN ---
+        // --- ADMIN METHOD  ---
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()
         {
             return await _context.Orders
