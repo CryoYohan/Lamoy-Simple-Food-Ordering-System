@@ -63,7 +63,7 @@ namespace backend.Services
 
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
             user.PasswordResetToken = token;
-            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Link expires after 1 hour
 
             await _userRepository.SaveChangesAsync();
             _logger.LogInformation("Generated password reset token for User {UserId}", user.UserId);
@@ -82,7 +82,6 @@ namespace backend.Services
 
         public async Task ResetPasswordAsync(ResetPasswordRequest request)
         {
-// ... (existing code remains the same) ...
             _logger.LogInformation("Attempting to reset password with token: {Token}", request.Token);
             var user = await _userRepository.GetUserByPasswordResetTokenAsync(request.Token);
 
@@ -118,7 +117,6 @@ namespace backend.Services
         // This is for Admins to get any user
         public async Task<UserDto> GetUserByIdAsync(int id)
         {
-// ... (existing code remains the same) ...
             _logger.LogInformation("Fetching user by ID: {UserId}", id);
             var user = await _userRepository.GetUserByIdAsync(id);
 
@@ -140,7 +138,7 @@ namespace backend.Services
         }
 
         
-        // --- 6. REPLACED/UPDATED PROFILE METHODS ---
+        // --- 6. UPDATED PROFILE METHODS ---
 
         // Gets the profile for the *currently logged-in* user
         public async Task<UserDto> GetUserProfileAsync()
