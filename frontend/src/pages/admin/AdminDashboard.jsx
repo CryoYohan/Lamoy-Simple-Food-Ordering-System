@@ -158,14 +158,34 @@ const AdminDashboard = () => {
     switch (type) {
       case "order":
         return (
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
           </svg>
         );
       case "menu":
         return (
-          <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          <svg
+            className="w-5 h-5 text-yellow-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
           </svg>
         );
       case "user":
@@ -180,13 +200,22 @@ const AdminDashboard = () => {
         );
       default:
         return (
-          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-purple-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         );
     }
   };
-
 
   // FIX 1: Update loading state check
   if (authIsLoading || loading) {
@@ -220,15 +249,16 @@ const AdminDashboard = () => {
     );
   }
 
-
   // FIX 1: Update this check. If auth is loaded and no data, something's wrong.
   if (!dashboardData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <p className="text-gray-600">Could not load dashboard data. You may not be authorized.</p>
+          <p className="text-gray-600">
+            Could not load dashboard data. You may not be authorized.
+          </p>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate("/login")}
             className="mt-4 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
           >
             Login
@@ -262,10 +292,11 @@ const AdminDashboard = () => {
         }}
       >
         <div
-          className={`transition-all duration-1000 ease-out ${isVisible.hero
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-8"
-            }`}
+          className={`transition-all duration-1000 ease-out ${
+            isVisible.hero
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
           data-section="hero"
         >
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold mb-4 sm:mb-6">
@@ -280,123 +311,150 @@ const AdminDashboard = () => {
       {/* Stats Cards Section */}
       <div className="relative -mt-20 mb-12 px-4 sm:px-6 lg:px-8 z-40">
         <div
-          className={`max-w-[1400px] mx-auto transition-all duration-1000 ease-out ${isVisible.stats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          className={`max-w-[1400px] mx-auto transition-all duration-1000 ease-out ${
+            isVisible.stats
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
           data-section="stats"
         >
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Total Sales */}
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-1">
-              <div className="bg-white rounded-2xl p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-gray-600 text-sm lg:text-base font-semibold mb-2">
-                      Total Sales
-                    </p>
-                    <p className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                      ₱
-                      {stats.totalSales.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                    <p
-                      className={`text-xs lg:text-sm font-semibold ${stats.monthlyGrowth >= 0
+              <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-0">
+                <div className="flex-1 text-center sm:text-left">
+                  <p className="text-gray-600 text-sm sm:text-base font-semibold mb-2">
+                    Total Sales
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                    ₱
+                    {stats.totalSales.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                  <p
+                    className={`text-xs sm:text-sm font-semibold ${
+                      stats.monthlyGrowth >= 0
                         ? "text-green-600"
                         : "text-red-600"
-                        }`}
-                    >
-                      {stats.monthlyGrowth >= 0 ? "+" : ""}
-                      {stats.monthlyGrowth.toFixed(1)}% this month
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-green-100 rounded-2xl flex items-center justify-center">
-                    <svg className="w-6 h-6 lg:w-8 lg:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
+                    }`}
+                  >
+                    {stats.monthlyGrowth >= 0 ? "+" : ""}
+                    {stats.monthlyGrowth.toFixed(1)}% this month
+                  </p>
+                </div>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-green-100 rounded-2xl flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
 
             {/* Total Orders */}
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-1">
-              <div className="bg-white rounded-2xl p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-gray-600 text-sm lg:text-base font-semibold mb-2">
-                      Total Orders
-                    </p>
-                    <p className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                      {stats.totalOrders.toLocaleString()}
-                    </p>
-                    <p className="text-blue-600 text-xs lg:text-sm font-semibold">
-                      All time
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
-                    <svg className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                  </div>
+              <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-0">
+                <div className="flex-1 text-center sm:text-left">
+                  <p className="text-gray-600 text-sm sm:text-base font-semibold mb-2">
+                    Total Orders
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                    {stats.totalOrders.toLocaleString()}
+                  </p>
+                  <p className="text-blue-600 text-xs sm:text-sm font-semibold">
+                    All time
+                  </p>
+                </div>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
 
             {/* Active Users */}
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-1">
-              <div className="bg-white rounded-2xl p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-gray-600 text-sm lg:text-base font-semibold mb-2">
-                      Active Users
-                    </p>
-                    <p className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                      {stats.activeUsers.toLocaleString()}
-                    </p>
-                    <p className="text-purple-600 text-xs lg:text-sm font-semibold">
-                      Registered
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-purple-100 rounded-2xl flex items-center justify-center">
-                    <svg className="w-6 h-6 lg:w-8 lg:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
+              <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-0">
+                <div className="flex-1 text-center sm:text-left">
+                  <p className="text-gray-600 text-sm sm:text-base font-semibold mb-2">
+                    Active Users
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                    {stats.activeUsers.toLocaleString()}
+                  </p>
+                  <p className="text-purple-600 text-xs sm:text-sm font-semibold">
+                    Registered
+                  </p>
+                </div>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-purple-100 rounded-2xl flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
 
             {/* Revenue Growth */}
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-1">
-              <div className="bg-white rounded-2xl p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-gray-600 text-sm lg:text-base font-semibold mb-2">
-                      Revenue Growth
-                    </p>
-                    <p className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                      {stats.monthlyGrowth >= 0 ? "+" : ""}
-                      {stats.monthlyGrowth.toFixed(1)}%
-                    </p>
-                    <p className="text-yellow-600 text-xs lg:text-sm font-semibold">
-                      vs last month
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-yellow-100 rounded-2xl flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 lg:w-8 lg:h-8 text-yellow-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                      />
-                    </svg>
-                  </div>
+              <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 shadow-lg flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-0">
+                <div className="flex-1 text-center sm:text-left">
+                  <p className="text-gray-600 text-sm sm:text-base font-semibold mb-2">
+                    Revenue Growth
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                    {stats.monthlyGrowth >= 0 ? "+" : ""}
+                    {stats.monthlyGrowth.toFixed(1)}%
+                  </p>
+                  <p className="text-yellow-600 text-xs sm:text-sm font-semibold">
+                    vs last month
+                  </p>
+                </div>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-yellow-100 rounded-2xl flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-yellow-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -409,10 +467,11 @@ const AdminDashboard = () => {
         <div className="max-w-[1400px] mx-auto">
           {/* Charts Section */}
           <div
-            className={`grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 mb-10 transition-all duration-1000 ease-out ${isVisible.charts
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
-              }`}
+            className={`grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 mb-10 transition-all duration-1000 ease-out ${
+              isVisible.charts
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
             data-section="charts"
           >
             {/* Sales Chart */}
@@ -424,14 +483,20 @@ const AdminDashboard = () => {
                 {salesData && salesData.length > 0 ? (
                   (() => {
                     // Calculate max sales for proper scaling
-                    const maxSales = Math.max(...salesData.map(d => d.sales || 0));
-                    const minVisibleHeight = 5; // Minimum 5% height for visibility
+                    const maxSales = Math.max(
+                      ...salesData.map((d) => d.sales || 0)
+                    );
+                    const minVisibleHeight = 10; // Minimum 5px height for visibility
 
                     return salesData.map((data, index) => {
                       // Calculate height percentage based on max value
-                      const heightPercentage = maxSales > 0
-                        ? Math.max(((data.sales || 0) / maxSales) * 100, minVisibleHeight)
-                        : minVisibleHeight;
+                      const heightPercentage =
+                        maxSales > 0
+                          ? Math.max(
+                              ((data.sales || 0) / maxSales) * 250,
+                              minVisibleHeight
+                            )
+                          : minVisibleHeight;
 
                       return (
                         <div
@@ -441,16 +506,20 @@ const AdminDashboard = () => {
                           <div
                             className="bg-yellow-400 rounded-t-lg w-full transition-all duration-1000 hover:bg-yellow-500 cursor-pointer relative"
                             style={{
-                              height: `${heightPercentage}%`,
+                              height: `${heightPercentage}px`,
                               // FIX 2: REMOVE THE minHeight
                             }}
-                            title={`₱${(data.sales || 0).toLocaleString("en-US", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}`}
+                            title={`₱${(data.sales || 0).toLocaleString(
+                              "en-US",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }
+                            )}`}
                           >
                             <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                              ₱{(data.sales || 0).toLocaleString("en-US", {
+                              ₱
+                              {(data.sales || 0).toLocaleString("en-US", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}
@@ -497,8 +566,10 @@ const AdminDashboard = () => {
                     <p className="text-lg font-bold text-gray-900">
                       ₱
                       {(
-                        salesData.reduce((sum, data) => sum + (data.sales || 0), 0) /
-                        salesData.length
+                        salesData.reduce(
+                          (sum, data) => sum + (data.sales || 0),
+                          0
+                        ) / salesData.length
                       ).toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -528,7 +599,7 @@ const AdminDashboard = () => {
               </h3>
               <div className="space-y-6">
                 {orderStatusDistribution &&
-                  orderStatusDistribution.length > 0 ? (
+                orderStatusDistribution.length > 0 ? (
                   orderStatusDistribution.map((status, index) => (
                     <div key={index}>
                       <div className="flex items-center justify-between mb-2">

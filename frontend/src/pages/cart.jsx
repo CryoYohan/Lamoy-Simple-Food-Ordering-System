@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import DynamicNavigation from '../components/dynamicNavbar';
-import bgImage from '../assets/MAIN4.png';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import bowlImage from '../assets/bowl.png'; // Import the bowl image
+import React, { useState, useEffect } from "react";
+import DynamicNavigation from "../components/dynamicNavbar";
+import bgImage from "../assets/MAIN4.png";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import bowlImage from "../assets/bowl.png"; // Import the bowl image
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -14,14 +14,14 @@ const CartPage = () => {
     hero: false,
     content: false,
     cartItems: false,
-    summary: false
+    summary: false,
   });
 
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     itemId: null,
-    itemName: ''
+    itemName: "",
   });
 
   // Clear cart confirmation modal state
@@ -33,22 +33,22 @@ const CartPage = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setIsVisible(prev => ({
+            setIsVisible((prev) => ({
               ...prev,
-              [entry.target.dataset.section]: true
+              [entry.target.dataset.section]: true,
             }));
           }
         });
       },
       {
         threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
+        rootMargin: "0px 0px -50px 0px",
       }
     );
 
     // Observe all sections with data-section attribute
-    const sections = document.querySelectorAll('[data-section]');
-    sections.forEach(section => observer.observe(section));
+    const sections = document.querySelectorAll("[data-section]");
+    sections.forEach((section) => observer.observe(section));
 
     // Cleanup observer on component unmount
     return () => observer.disconnect();
@@ -57,7 +57,7 @@ const CartPage = () => {
   // Set hero section visible immediately on mount
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsVisible(prev => ({ ...prev, hero: true }));
+      setIsVisible((prev) => ({ ...prev, hero: true }));
     }, 100);
     return () => clearTimeout(timer);
   }, []);
@@ -74,7 +74,7 @@ const CartPage = () => {
 
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity < 1) return;
-    const updated = cartItems.map(item =>
+    const updated = cartItems.map((item) =>
       item.itemId === itemId ? { ...item, quantity: newQuantity } : item
     );
     setCartItems(updated);
@@ -85,24 +85,26 @@ const CartPage = () => {
   };
 
   const removeItem = (itemId) => {
-    const itemToDelete = cartItems.find(item => item.itemId === itemId);
+    const itemToDelete = cartItems.find((item) => item.itemId === itemId);
     setDeleteModal({
       isOpen: true,
       itemId: itemId,
-      itemName: itemToDelete?.name || 'this item'
+      itemName: itemToDelete?.name || "this item",
     });
   };
 
   const confirmDelete = () => {
-    const updated = cartItems.filter(item => item.itemId !== deleteModal.itemId);
+    const updated = cartItems.filter(
+      (item) => item.itemId !== deleteModal.itemId
+    );
     setCartItems(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
     dispatchCartUpdate();
-    setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+    setDeleteModal({ isOpen: false, itemId: null, itemName: "" });
   };
 
   const cancelDelete = () => {
-    setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+    setDeleteModal({ isOpen: false, itemId: null, itemName: "" });
   };
 
   // Clear entire cart function
@@ -122,7 +124,10 @@ const CartPage = () => {
   };
 
   // Calculate total
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   return (
     <div className="min-h-screen relative font-sans bg-white">
@@ -131,7 +136,11 @@ const CartPage = () => {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all border border-gray-200">
             <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
               </svg>
             </div>
@@ -139,7 +148,11 @@ const CartPage = () => {
               Remove Item?
             </h3>
             <p className="text-gray-600 text-center mb-6 text-sm leading-relaxed">
-              Are you sure you want to remove <span className="font-semibold text-gray-900">"{deleteModal.itemName}"</span> from your cart?
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-gray-900">
+                "{deleteModal.itemName}"
+              </span>{" "}
+              from your cart?
             </p>
             <div className="flex gap-3">
               <button
@@ -164,7 +177,11 @@ const CartPage = () => {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all border border-gray-200">
             <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
               </svg>
             </div>
@@ -172,7 +189,11 @@ const CartPage = () => {
               Clear Cart?
             </h3>
             <p className="text-gray-600 text-center mb-6 text-sm leading-relaxed">
-              Are you sure you want to remove <span className="font-semibold text-gray-900">all items ({cartItems.length})</span> from your cart? This action cannot be undone.
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-gray-900">
+                all items ({cartItems.length})
+              </span>{" "}
+              from your cart? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
@@ -201,20 +222,24 @@ const CartPage = () => {
         className="relative top-0 left-0 w-full h-96 bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center"
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center center'
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
         }}
       >
         <div
-          className={`transition-all duration-1000 ease-out ${isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
+          className={`transition-all duration-1000 ease-out ${
+            isVisible.hero
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
           data-section="hero"
         >
           <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
             My Cart
           </h1>
           <p className="text-white text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed">
-            Review the items you've added and make changes before placing your order
+            Review the items you've added and make changes before placing your
+            order
           </p>
         </div>
 
@@ -222,7 +247,7 @@ const CartPage = () => {
         <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-1/2 z-30">
           <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
             <button
-              onClick={() => navigate('/menu')}
+              onClick={() => navigate("/menu")}
               className="bg-white px-8 py-3 rounded-full font-semibold text-lg text-yellow-500 hover:bg-gray-50 transition-colors shadow-lg"
             >
               Browse +
@@ -236,18 +261,26 @@ const CartPage = () => {
         <div className="max-w-6xl mx-auto px-4">
           {/* Breadcrumb */}
           <div
-            className={`flex items-center justify-between mb-8 transition-all duration-800 ease-out ${isVisible.content ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
+            className={`flex items-center justify-between mb-8 transition-all duration-800 ease-out ${
+              isVisible.content
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
             data-section="content"
           >
             <div className="flex items-center space-x-2 text-sm text-gray-800">
-              <button onClick={() => navigate('/menu')} className="hover:text-yellow-600 font-medium">Menu</button>
+              <button
+                onClick={() => navigate("/menu")}
+                className="hover:text-yellow-600 font-medium"
+              >
+                Menu
+              </button>
               <span>/</span>
               <span className="text-gray-900 font-semibold">Cart</span>
             </div>
             <button
               className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-white rounded-lg font-medium transition-colors"
-              onClick={() => navigate('/orders')}
+              onClick={() => navigate("/orders")}
             >
               View Orders
             </button>
@@ -257,26 +290,47 @@ const CartPage = () => {
             {/* Shopping Cart */}
             <div className="lg:col-span-2">
               <div
-                className={`bg-white rounded-xl p-10 border border-gray-200 transition-all duration-1000 ease-out ${isVisible.cartItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-                  }`}
+                className={`bg-white rounded-xl p-10 border border-gray-200 transition-all duration-1000 ease-out ${
+                  isVisible.cartItems
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
+                }`}
                 data-section="cartItems"
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Shopping Cart</h2>
-                <p className="text-gray-700 mb-6 font-medium">Cart Items ({cartItems.length})</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Shopping Cart
+                </h2>
+                <p className="text-gray-700 mb-6 font-medium">
+                  Cart Items ({cartItems.length})
+                </p>
 
                 {/* Cart Items */}
                 <div className="space-y-6">
                   {cartItems.length === 0 ? (
                     <div className="text-center py-16">
                       <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2-2m2 2l-2 2M9 21a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z" />
+                        <svg
+                          className="w-12 h-12 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2-2m2 2l-2 2M9 21a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z"
+                          />
                         </svg>
                       </div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h3>
-                      <p className="text-gray-600 mb-6">Add some delicious items from our menu to get started!</p>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        Your cart is empty
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Add some delicious items from our menu to get started!
+                      </p>
                       <button
-                        onClick={() => navigate('/menu')}
+                        onClick={() => navigate("/menu")}
                         className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
                       >
                         Browse Menu
@@ -286,65 +340,75 @@ const CartPage = () => {
                     cartItems.map((item, index) => (
                       <div
                         key={item.itemId}
-                        className={`flex items-center p-6 border border-gray-100 rounded-xl hover:shadow-sm transition-all duration-500 ease-out bg-white ${isVisible.cartItems ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                          }`}
-                        style={{
-                          transitionDelay: isVisible.cartItems ? `${200 + (index * 100)}ms` : '0ms'
-                        }}
+                        className="flex flex-col sm:flex-row items-start sm:items-center p-4 sm:p-6 border border-gray-100 rounded-xl hover:shadow-md transition-all duration-300 bg-white w-full"
                       >
-                        {/* Item Image - Fixed styling */}
-                        <div className="relative w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center flex-shrink-0 mr-6 shadow-sm overflow-hidden">
+                        {/* Image */}
+                        <div className="w-full sm:w-24 h-24 sm:h-24 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 mb-4 sm:mb-0">
                           <img
-                            src={item.image && item.image !== bowlImage ? item.image : bowlImage}
+                            src={
+                              item.image && item.image !== bowlImage
+                                ? item.image
+                                : bowlImage
+                            }
                             alt={item.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover rounded-xl"
                             onError={(e) => {
                               e.target.src = bowlImage;
-                              e.target.className = "w-16 h-16 object-contain";
+                              e.target.className =
+                                "w-full h-full object-contain rounded-xl";
                             }}
                           />
                         </div>
 
-                        {/* Item Details */}
-                        <div className="flex-grow min-w-0 mr-6">
-                          <h3 className="font-bold text-xl text-gray-900 mb-1 truncate">{item.name}</h3>
-                          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                            {item.description && item.description.length > 80 
-                              ? `${item.description.substring(0, 80)}...` 
-                              : item.description || 'Delicious menu item'}
+                        {/* Details */}
+                        <div className="flex flex-col sm:flex-1 sm:ml-6 w-full">
+                          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
+                            {item.name}
+                          </h3>
+                          <p className="text-gray-600 text-sm sm:text-base line-clamp-2 mt-1">
+                            {item.description || "Delicious menu item"}
                           </p>
-                        </div>
 
-                        {/* Quantity Controls */}
-                        <div className="flex items-center space-x-3 mr-6">
-                          <button
-                            onClick={() => updateQuantity(item.itemId, item.quantity - 1)}
-                            className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center transition-colors shadow-sm"
-                          >
-                            <span className="text-gray-700 font-medium text-lg">-</span>
-                          </button>
-                          <span className="min-w-[2.5rem] text-center font-semibold text-gray-900 text-lg">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.itemId, item.quantity + 1)}
-                            className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center transition-colors shadow-sm"
-                          >
-                            <span className="text-gray-700 font-medium text-lg">+</span>
-                          </button>
-                        </div>
+                          {/* Quantity + Price */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 w-full">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() =>
+                                  updateQuantity(item.itemId, item.quantity - 1)
+                                }
+                                className="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg font-bold text-gray-700 transition"
+                              >
+                                -
+                              </button>
+                              <span className="min-w-[2rem] text-center font-medium">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  updateQuantity(item.itemId, item.quantity + 1)
+                                }
+                                className="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg font-bold text-gray-700 transition"
+                              >
+                                +
+                              </button>
+                            </div>
 
-                        {/* Price */}
-                        <div className="text-right mr-6 flex-shrink-0">
-                          <div className="bg-yellow-100 text-yellow-400 px-4 py-1.5 rounded-full font-bold text-md">
-                            ₱ {item.price.toFixed(2)}
+                            <div className="mt-3 sm:mt-0 text-gray-900 font-bold text-lg sm:text-xl">
+                              ₱ {(item.price * item.quantity).toFixed(2)}
+                            </div>
                           </div>
                         </div>
 
                         {/* Remove Button */}
                         <button
                           onClick={() => removeItem(item.itemId)}
-                          className="w-10 h-10 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-lg flex items-center justify-center transition-colors shadow-sm flex-shrink-0"
+                          className="mt-4 sm:mt-0 sm:ml-4 w-10 h-10 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-lg transition"
                         >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                          <svg
+                            className="w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
                             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                           </svg>
                         </button>
@@ -360,7 +424,11 @@ const CartPage = () => {
                       onClick={clearCart}
                       className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                     >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                       </svg>
                       Clear Cart
@@ -373,17 +441,29 @@ const CartPage = () => {
             {/* Order Summary Sidebar */}
             <div>
               <div
-                className={`bg-white rounded-xl border border-gray-200 p-6 sticky top-4 transition-all duration-1000 ease-out ${isVisible.summary ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-                  }`}
+                className={`bg-white rounded-xl border border-gray-200 p-6 sticky top-4 transition-all duration-1000 ease-out ${
+                  isVisible.summary
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
+                }`}
                 data-section="summary"
               >
-                <h3 className="font-bold text-xl text-gray-900 mb-6">Order Summary</h3>
+                <h3 className="font-bold text-xl text-gray-900 mb-6">
+                  Order Summary
+                </h3>
 
                 <div className="space-y-4 mb-6">
                   {cartItems.map((item) => (
-                    <div key={item.itemId} className="flex justify-between items-center">
-                      <span className="text-gray-800 font-medium">{item.name} x{item.quantity}</span>
-                      <span className="font-bold text-gray-900">₱ {(item.price * item.quantity).toFixed(2)}</span>
+                    <div
+                      key={item.itemId}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-gray-800 font-medium">
+                        {item.name} x{item.quantity}
+                      </span>
+                      <span className="font-bold text-gray-900">
+                        ₱ {(item.price * item.quantity).toFixed(2)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -391,12 +471,16 @@ const CartPage = () => {
                 <hr className="border-gray-200 mb-6" />
 
                 <div className="flex justify-between items-center mb-6">
-                  <span className="text-xl font-bold text-gray-900">Total:</span>
-                  <span className="text-xl font-bold text-gray-900">₱ {total.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    Total:
+                  </span>
+                  <span className="text-xl font-bold text-gray-900">
+                    ₱ {total.toFixed(2)}
+                  </span>
                 </div>
 
                 <button
-                  onClick={() => navigate('/checkout')}
+                  onClick={() => navigate("/checkout")}
                   className="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg hover:shadow-xl"
                 >
                   Proceed Checkout

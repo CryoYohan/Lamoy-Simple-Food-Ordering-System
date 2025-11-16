@@ -17,6 +17,22 @@ const WelcomeLogin = () => {
     form: false,
   });
   const navigate = useNavigate();
+
+  const [emailError, setEmailError] = useState("");
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleEmailChange = (value) => {
+    setEmail(value);
+
+    if (!value.trim()) {
+      setEmailError("Email is required");
+    } else if (!emailRegex.test(value)) {
+      setEmailError("Please enter a valid email");
+    } else {
+      setEmailError(""); // valid
+    }
+  };
+
   const { login } = useAuth(); // This is your context login, e.g., for setting the token
   const { showSuccess, showError } = useToast();
 
@@ -72,7 +88,9 @@ const WelcomeLogin = () => {
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      showError("Invalid Email Format: Please enter a valid email address (example: user@example.com).");
+      showError(
+        "Invalid Email Format: Please enter a valid email address (example: user@example.com)."
+      );
       setIsLoading(false);
       return;
     }
@@ -92,13 +110,13 @@ const WelcomeLogin = () => {
 
       // 4. Role-based navigation
       setTimeout(() => {
-        if (data.role === 1) { // 1 is Admin
+        if (data.role === 1) {
+          // 1 is Admin
           navigate("/admin");
         } else {
           navigate("/home");
         }
       }, 1000);
-
     } catch (err) {
       // 5. Handle all errors from the middleware
       // err.message will be "Invalid Email or password."
@@ -137,10 +155,11 @@ const WelcomeLogin = () => {
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div
-          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${isVisible.hero
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-            }`}
+          className={`text-center mb-8 sm:mb-12 mt-8 sm:mt-12 transition-all duration-1000 ${
+            isVisible.hero
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
           data-section="hero"
         >
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">
@@ -157,10 +176,11 @@ const WelcomeLogin = () => {
         </div>
 
         <div
-          className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${isVisible.form
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-            }`}
+          className={`w-full max-w-xs sm:max-w-md md:max-w-lg bg-white/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-1000 ${
+            isVisible.form
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
           data-section="form"
           style={{ transitionDelay: "300ms" }}
         >
@@ -181,11 +201,29 @@ const WelcomeLogin = () => {
                   type="email"
                   id="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400 outline-none transition-all duration-200 bg-gray-50 text-gray-700 text-sm sm:text-base"
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  className={`
+                    w-full px-3 sm:px-4 py-3 sm:py-4 
+                    border rounded-lg sm:rounded-xl 
+                    focus:ring-2 outline-none transition-all duration-200 
+                    bg-gray-50 text-gray-700 text-sm sm:text-base
+
+                    ${
+                      emailError
+                        ? "border-red-500 focus:ring-red-200 focus:border-red-500"
+                        : email
+                        ? "border-green-500 focus:ring-green-200 focus:border-green-500"
+                        : "border-gray-200 focus:ring-yellow-100 focus:border-yellow-400"
+                    }
+                  `}
                   required
                   disabled={isLoading}
                 />
+                {emailError && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">
+                    {emailError}
+                  </p>
+                )}
               </div>
 
               <div>
