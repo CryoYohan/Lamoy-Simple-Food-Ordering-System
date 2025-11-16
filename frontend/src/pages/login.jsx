@@ -211,8 +211,6 @@ const WelcomeLogin = () => {
                     ${
                       emailError
                         ? "border-red-500 focus:ring-red-200 focus:border-red-500"
-                        : email
-                        ? "border-green-500 focus:ring-green-200 focus:border-green-500"
                         : "border-gray-200 focus:ring-yellow-100 focus:border-yellow-400"
                     }
                   `}
