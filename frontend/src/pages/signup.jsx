@@ -327,11 +327,7 @@ const SignUpPage = () => {
                     disabled={isLoading}
                   />
                 </div>
-                {passwordError && (
-                  <p className="text-red-500 text-xs sm:text-sm mt-1 col-span-2">
-                    {passwordError}
-                  </p>
-                )}
+
                 <div>
                   <label
                     htmlFor="confirmPassword"
@@ -350,6 +346,12 @@ const SignUpPage = () => {
                     disabled={isLoading}
                   />
                 </div>
+
+                {passwordError && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-1 col-span-2">
+                    {passwordError}
+                  </p>
+                )}
               </div>
 
               <div>
