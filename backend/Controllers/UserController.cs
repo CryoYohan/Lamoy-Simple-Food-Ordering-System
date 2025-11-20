@@ -88,6 +88,15 @@ namespace backend.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             return Ok(user);
         }
+
+        [HttpPost("profile/reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ProfileResetPassword([FromBody] ResetPasswordProfile dto)
+        {
+            await _userService.ProfileResetPasswordAsync(dto);
+            return Ok(new { message = AppConstants.Logs.UserController.Successful });
+        }
+
         
     }
 }

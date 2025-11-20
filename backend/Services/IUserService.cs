@@ -13,5 +13,7 @@ namespace backend.Services
         Task<IEnumerable<UserDto>> GetAllUsersAsync(); // This is for admins
         Task<UserDto> GetUserProfileAsync();
         Task<UserDto> UpdateUserProfileAsync(UserUpdateDto dto);
+
+        Task ProfileResetPasswordAsync(ResetPasswordProfile request);
     }
 }

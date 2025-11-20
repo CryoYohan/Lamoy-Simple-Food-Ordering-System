@@ -3,7 +3,7 @@ import DynamicNavigation from "../components/dynamicNavbar";
 import bgImage from "../assets/MAIN4.png";
 import { useSearchParams, useNavigate } from "react-router-dom";
 // 1. Import the service function
-import { resetPassword } from "../services/authService";
+import { resetPasswordProfile } from "../services/authService";
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -96,7 +96,30 @@ const ResetPassword = () => {
     e.preventDefault();
     setMessage("");
 
-    // Set reset password logic here mga pre
+    if (newPassword !== confirmPassword) {
+      setMessage("Passwords do not match");
+      setMessageType("error");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // 2. Call the service function
+      const data = await resetPasswordProfile(newPassword, confirmPassword);
+
+      // 3. Handle the success message
+      // data.message = "Password reset successful."
+      setMessage(data.message + " Redirecting to profile...");
+      setMessageType("success");
+      setTimeout(() => navigate("/profile"), 3000);
+    } catch (err) {
+      // 4. Handle all errors
+      console.error(err);
+      setMessage(err.message || "Something went wrong. Try again later.");
+      setMessageType("error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

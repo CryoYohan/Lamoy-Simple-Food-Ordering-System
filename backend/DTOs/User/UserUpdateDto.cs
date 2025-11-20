@@ -15,5 +15,6 @@ namespace backend.DTOs.User
         [Required]
         [StringLength(255, MinimumLength = 5, ErrorMessage = "Address must be between 5 and 255 characters.")]
         public string Address { get; set; } = string.Empty;
+
     }
 }

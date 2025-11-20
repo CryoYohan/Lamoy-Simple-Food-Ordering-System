@@ -166,6 +166,43 @@ namespace backend.Services
             return MapToUserDto(user);
         }
 
+       public async Task ProfileResetPasswordAsync(ResetPasswordProfile request)
+        {
+            var userId = GetAuthenticatedUserId();
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException(AppConstants.Errors.UserNotFound);
+            }
+
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                throw new InvalidOperationException("Passwords do not match.");
+            }
+
+            if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            {
+                _logger.LogWarning(AppConstants.Logs.PasswordResetSameAsOld, userId);
+                throw new InvalidOperationException(AppConstants.Errors.PasswordSameAsOld);
+            }
+
+            if (!Regex.IsMatch(request.NewPassword, "[A-Z]"))
+            {
+                _logger.LogWarning(AppConstants.Logs.PasswordResetMissingCapital, userId);
+                throw new InvalidOperationException(AppConstants.Errors.PasswordMustContainCapital);
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.PasswordResetToken = null;
+            user.ResetTokenExpiry = null;
+
+            await _userRepository.SaveChangesAsync();
+
+            _logger.LogInformation("Profile password reset successful for User {UserId}.", userId);
+        }
+
+
         private UserDto MapToUserDto(User user)
         {
             return new UserDto
