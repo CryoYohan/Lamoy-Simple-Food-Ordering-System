@@ -129,6 +129,29 @@ const SignUpPage = () => {
       return;
     }
 
+    // check if the number inputed is valid
+    const phoneRegex = /^[0-9]{10,15}$/; // Simple regex for phone numbers
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      showError(
+        "Invalid Phone Number: Please enter a valid phone number with 10 to 15 digits."
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    // check if the full name is valid
+    const nameRegex = /^[a-zA-Z\s'-]+$/; // Allows letters, spaces, apostrophes, and hyphens
+    if (
+      !nameRegex.test(formData.fullName) ||
+      formData.fullName.trim().length < 2
+    ) {
+      showError(
+        "Invalid Full Name: Please enter a valid full name with at least 2 characters."
+      );
+      setIsLoading(false);
+      return;
+    }
+
     // --- This is the new API call logic ---
     try {
       // 1. Create the data object to send
