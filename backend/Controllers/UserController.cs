@@ -94,7 +94,7 @@ namespace backend.Controllers
         public async Task<IActionResult> ProfileResetPassword([FromBody] ResetPasswordProfile dto)
         {
             await _userService.ProfileResetPasswordAsync(dto);
-            return Ok(new { message = AppConstants.Logs.UserController.Successful });
+            return Ok(new { message = AppConstants.Logs.UserController.SuccessfulChangePass });
         }
 
         

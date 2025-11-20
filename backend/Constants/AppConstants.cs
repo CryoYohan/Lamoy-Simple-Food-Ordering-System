@@ -116,6 +116,7 @@ public static class OrderController
                  public const string IfExist = "If an account with that email exists, a password reset link has been sent.";
 
                 public const string Successful = "Password reset successful. You can now log in.";
+                public const string SuccessfulChangePass = "Password change successful.";
             }
             
         }
